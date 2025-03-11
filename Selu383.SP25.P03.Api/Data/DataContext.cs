@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Features.Users;
 using Selu383.SP25.P03.Api.Features.Theaters;
+using Selu383.SP25.P03.Api.Features.Seats;
 
 namespace Selu383.SP25.P03.Api.Data
 {
@@ -13,6 +14,7 @@ namespace Selu383.SP25.P03.Api.Data
         }
 
         public DbSet<Theater> Theaters { get; set; }
+        public DbSet<Seat> Seats { get; set; }  // Added Seat DbSet
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -31,6 +33,14 @@ namespace Selu383.SP25.P03.Api.Data
                 .HasMany(e => e.UserRoles)
                 .WithOne(x => x.Role)
                 .HasForeignKey(e => e.RoleId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Seat-Theater relationship
+            builder.Entity<Seat>()
+                .HasOne(s => s.Theater)
+                .WithMany(t => t.Seats)
+                .HasForeignKey(s => s.TheaterId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
         }
