@@ -1,7 +1,7 @@
 ﻿using Selu383.SP25.P03.Api.Features.Theaters;
 using Selu383.SP25.P03.Api.Features.Users;
 
-namespace Selu383.SP25.P03.Api.Features.Seats // FIX: Namespace changed to Seats
+namespace Selu383.SP25.P03.Api.Features.Seats 
 {
     public class Seat
     {
