@@ -34,7 +34,7 @@ namespace Selu383.SP25.P03.Api.Data
         {
             base.OnModelCreating(builder);
 
-            // Configure UserRole relationship
+            // Ensure UserRole relationship is configured
             builder.Entity<UserRole>().HasKey(x => new { x.UserId, x.RoleId });
 
             builder.Entity<User>()
@@ -149,6 +149,23 @@ namespace Selu383.SP25.P03.Api.Data
                 .HasForeignKey(fi => fi.LocationId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure precision and scale for decimal properties
+            builder.Entity<FoodItem>()
+                .Property(f => f.Price)
+                .HasPrecision(18, 2); // Precision: 18, Scale: 2
+
+            builder.Entity<Order>()
+                .Property(o => o.Price)
+                .HasPrecision(18, 2); // Precision: 18, Scale: 2
+
+            builder.Entity<Payment>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2); // Precision: 18, Scale: 2
+
+            builder.Entity<Ticket>()
+                .Property(t => t.Price)
+                .HasPrecision(18, 2); // Precision: 18, Scale: 2
         }
     }
 }

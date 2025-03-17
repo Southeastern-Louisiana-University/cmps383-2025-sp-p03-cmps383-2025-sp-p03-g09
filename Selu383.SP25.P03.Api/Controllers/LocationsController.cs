@@ -39,7 +39,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult<LocationDto> CreateLocation(LocationDto dto)
         {
             if (IsInvalid(dto))
@@ -63,7 +63,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult<LocationDto> UpdateLocation(int id, LocationDto dto)
         {
             if (IsInvalid(dto))
@@ -89,7 +89,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         [HttpDelete]
         [Route("{id}")]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult DeleteLocation(int id)
         {
             var location = locations.FirstOrDefault(x => x.Id == id);

@@ -39,7 +39,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 {
                     Id = user.Id,
                     UserName = user.UserName,
-                    Roles = (await userManager.GetRolesAsync(user)).ToArray()
+                    Roles = (await userManager.GetRolesAsync(user)).ToList()
                 };
             }
             return BadRequest();
@@ -59,7 +59,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             {
                 Id = user.Id,
                 UserName = user.UserName,
-                Roles = (await userManager.GetRolesAsync(user)).ToArray()
+                Roles = (await userManager.GetRolesAsync(user)).ToList()
             };
         }
 
