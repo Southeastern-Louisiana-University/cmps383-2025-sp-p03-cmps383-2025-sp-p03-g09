@@ -251,14 +251,13 @@ const Home: React.FC = () => {
                 >
                   <img 
                     src={movie.posterUrl} 
-                    alt={movie.title} 
                     className="w-full h-64 object-cover"
                   />
                   <div className="p-4">
                     <h3 className="text-xl font-bold mb-2 text-white">{movie.title}</h3>
                     <div className="flex justify-between mb-2 text-sm text-gray-400">
-                      <span>{movie.duration} mins</span>
-                      <span>{movie.rating}</span>
+                      <span>Runtime: {movie.duration} mins</span>
+                      <p>Rating: {movie.rating}</p>
                     </div>
                     <p className="text-gray-300 mb-4 line-clamp-3">{movie.description}</p>
                     <button 
