@@ -39,7 +39,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult<MovieDto> CreateMovie(MovieDto dto)
         {
             if (IsInvalid(dto))
@@ -66,7 +66,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult<MovieDto> UpdateMovie(int id, MovieDto dto)
         {
             if (IsInvalid(dto))
@@ -95,7 +95,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         [HttpDelete]
         [Route("{id}")]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult DeleteMovie(int id)
         {
             var movie = movies.FirstOrDefault(x => x.Id == id);

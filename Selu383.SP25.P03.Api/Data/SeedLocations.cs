@@ -9,28 +9,16 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using (var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                // Look for any locations.
                 if (context.Locations.Any())
                 {
-                    return; // DB has been seeded
+                    return;
                 }
 
                 context.Locations.AddRange(
-                    new Location
-                    {
-                        Name = "Downtown Cinema",
-                        Address = "123 Main St, Springfield"
-                    },
-                    new Location
-                    {
-                        Name = "Uptown Theater",
-                        Address = "456 Elm St, Shelbyville"
-                    },
-                    new Location
-                    {
-                        Name = "Suburban Multiplex",
-                        Address = "789 Broadway Ave, Metropolis"
-                    }
+                    new Location {
+                         Name = "Downtown Cinema", Address = "123 Main St" },
+                    new Location {
+                      Name = "Uptown Theater" ,Address = "456 Elm St" }
                 );
 
                 context.SaveChanges();

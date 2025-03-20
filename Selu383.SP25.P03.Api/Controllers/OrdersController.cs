@@ -130,7 +130,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         [HttpDelete]
         [Route("{id}")]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult DeleteOrder(int id)
         {
             var order = orders.FirstOrDefault(x => x.Id == id);

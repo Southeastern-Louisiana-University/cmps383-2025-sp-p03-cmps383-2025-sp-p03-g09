@@ -39,7 +39,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult<FoodItemDto> CreateFoodItem(FoodItemDto dto)
         {
             if (IsInvalid(dto))
@@ -66,7 +66,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult<FoodItemDto> UpdateFoodItem(int id, FoodItemDto dto)
         {
             if (IsInvalid(dto))
@@ -95,7 +95,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         [HttpDelete]
         [Route("{id}")]
-        [Authorize(Roles = UserRoleNames.Admin)]
+        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
         public ActionResult DeleteFoodItem(int id)
         {
             var foodItem = foodItems.FirstOrDefault(x => x.Id == id);

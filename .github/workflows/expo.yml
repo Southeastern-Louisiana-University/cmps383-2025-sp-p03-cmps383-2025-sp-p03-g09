@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
-          cache-dependency-path: Selu383.SP25.P02.Mobile/package-lock.json
+          cache-dependency-path: Selu383.SP25.P03.Mobile/package-lock.json
 
       - name: 🏗 Setup EAS
         uses: expo/expo-github-action@v8
