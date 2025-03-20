@@ -57,8 +57,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             {
                 Name = dto.Name,
                 Address = dto.Address,
-                SeatCount = dto.SeatCount,
-                ManagerId = dto.ManagerId
+                SeatCount = dto.SeatCount
             };
             theaters.Add(theater);
 

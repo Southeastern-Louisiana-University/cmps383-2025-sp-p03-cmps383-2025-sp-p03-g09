@@ -31,7 +31,13 @@ namespace Selu383.SP25.P03.Api.Controllers
         [Authorize]
         public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
         {
-            if (!dto.Roles.Any() || !dto.Roles.All(x => roles.Any(y => x == y.Name)))
+            var rolesArray = new string[] { "Admin", "User" }; // Example array
+            var rolesList = rolesArray.ToList(); // Convert array to List<string>
+
+            // Ensure dto.Roles is converted to a List<string> for comparison
+            var dtoRolesList = dto.Roles.ToList();
+
+            if (!dtoRolesList.Any() || !dtoRolesList.All(x => rolesList.Any(y => x == y)))
             {
                 return BadRequest();
             }
@@ -39,14 +45,14 @@ namespace Selu383.SP25.P03.Api.Controllers
             var result = await userManager.CreateAsync(new User { UserName = dto.Username }, dto.Password);
             if (result.Succeeded)
             {
-                await userManager.AddToRolesAsync(await userManager.FindByNameAsync(dto.Username), dto.Roles);
+                await userManager.AddToRolesAsync(await userManager.FindByNameAsync(dto.Username), dtoRolesList);
 
                 var user = await userManager.FindByNameAsync(dto.Username);
                 return new UserDto
                 {
                     Id = user.Id,
                     UserName = dto.Username,
-                    Roles = dto.Roles
+                    Roles = dtoRolesList
                 };
             }
             return BadRequest();
