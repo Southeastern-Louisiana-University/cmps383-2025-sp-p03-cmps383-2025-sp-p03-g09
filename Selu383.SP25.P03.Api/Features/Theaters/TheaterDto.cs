@@ -4,8 +4,8 @@
     {
         public int Id { get; set; }
         public required string Name { get; set; }
-        public required string Address { get; set; } // Rename Location to Address
-        public int SeatCount { get; set; } // Add SeatCount property
-        public int? ManagerId { get; set; } // Ensure this property exists
+        public required string Address { get; set; }
+        public int SeatCount { get; set; }
+        public int? ManagerId { get; set; }
     }
 }

@@ -9,11 +9,18 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using (var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                // Look for any food items.
                 if (context.FoodItems.Any())
                 {
                     return; // DB has been seeded
                 }
+
+                var locations = context.Locations.ToList(); // Fetch all locations
+                if (!locations.Any())
+                {
+                    throw new InvalidOperationException("No locations found to associate with food items.");
+                }
+
+                var downtown = locations.FirstOrDefault(l => l.Name == "Downtown Cinema");
 
                 context.FoodItems.AddRange(
                     new FoodItem
@@ -22,24 +29,17 @@ namespace Selu383.SP25.P03.Api.Data
                         Price = 5.99m,
                         Description = "Classic buttered popcorn.",
                         IsVegan = true,
-                        LocationId = 1 // Assuming this corresponds to a seeded location
-                    },
-                    new FoodItem
-                    {
-                        Name = "Nachos",
-                        Price = 6.99m,
-                        Description = "Cheesy nachos with jalapenos.",
-                        IsVegan = false,
-                        LocationId = 2
-                    },
-                    new FoodItem
-                    {
-                        Name = "Soda",
-                        Price = 2.99m,
-                        Description = "Refreshing soft drink.",
-                        IsVegan = true,
-                        LocationId = 3
+                        Location = downtown
                     }
+                    // new FoodItem
+                    // {
+                    //     Name = "Nachos",
+                    //     Price = 6.99m,
+                    //     Description = "Cheesy nachos with jalapenos.",
+                    //     IsVegan = false,
+                    //     LocationId = 2
+                    // }.
+                    
                 );
 
                 context.SaveChanges();

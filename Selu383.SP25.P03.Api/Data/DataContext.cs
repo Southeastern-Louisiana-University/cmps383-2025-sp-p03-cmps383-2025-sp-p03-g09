@@ -34,7 +34,6 @@ namespace Selu383.SP25.P03.Api.Data
         {
             base.OnModelCreating(builder);
 
-            // Ensure UserRole relationship is configured
             builder.Entity<UserRole>().HasKey(x => new { x.UserId, x.RoleId });
 
             builder.Entity<User>()
@@ -51,7 +50,6 @@ namespace Selu383.SP25.P03.Api.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure Seat-Theater relationship
             builder.Entity<Seat>()
                 .HasOne(s => s.Theater)
                 .WithMany(t => t.Seats)
@@ -59,7 +57,6 @@ namespace Selu383.SP25.P03.Api.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure Ticket relationships
             builder.Entity<Ticket>()
                 .HasOne(t => t.Location)
                 .WithMany()
@@ -88,7 +85,6 @@ namespace Selu383.SP25.P03.Api.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure Order relationships
             builder.Entity<Order>()
                 .HasOne(o => o.User)
                 .WithMany(u => u.Orders)
@@ -110,7 +106,6 @@ namespace Selu383.SP25.P03.Api.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure OrderFoodItem relationship
             builder.Entity<OrderFoodItem>().HasKey(ofi => new { ofi.OrderId, ofi.FoodItemId });
 
             builder.Entity<OrderFoodItem>()
@@ -127,22 +122,20 @@ namespace Selu383.SP25.P03.Api.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure Payment relationships
             builder.Entity<Payment>()
                 .HasOne(p => p.Order)
                 .WithMany()
                 .HasForeignKey(p => p.OrderId)
                 .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Payment>()
                 .HasOne(p => p.User)
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure FoodItem-Location relationship
             builder.Entity<FoodItem>()
                 .HasOne(fi => fi.Location)
                 .WithMany()
@@ -150,22 +143,36 @@ namespace Selu383.SP25.P03.Api.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure precision and scale for decimal properties
             builder.Entity<FoodItem>()
                 .Property(f => f.Price)
-                .HasPrecision(18, 2); // Precision: 18, Scale: 2
+                .HasPrecision(18, 2);
 
             builder.Entity<Order>()
                 .Property(o => o.Price)
-                .HasPrecision(18, 2); // Precision: 18, Scale: 2
+                .HasPrecision(18, 2);
 
             builder.Entity<Payment>()
                 .Property(p => p.Price)
-                .HasPrecision(18, 2); // Precision: 18, Scale: 2
+                .HasPrecision(18, 2);
 
             builder.Entity<Ticket>()
                 .Property(t => t.Price)
-                .HasPrecision(18, 2); // Precision: 18, Scale: 2
+                .HasPrecision(18, 2);
+
+            builder.Entity<Location>()
+                .Property(l => l.Name)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            builder.Entity<Location>()
+                .Property(l => l.Address)
+                .IsRequired();
+
+            builder.Entity<Location>();
+                // .HasMany(l => l.Theaters)
+                // .WithOne(t => t.Location)
+                // .HasForeignKey(t => t.LocationId)
+                //.OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
