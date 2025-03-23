@@ -133,7 +133,16 @@ const styles = `
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
-    .cinema-logo {
+    
+ main {
+    animation: fadeIn 0.5s ease-out forwards;
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+  }
+
+  .cinema-logo {
     color: var(--accent-color);
     font-size: 1.5rem;
     font-weight: bold;
@@ -142,6 +151,12 @@ const styles = `
   .nav-links {
     display: flex;
     gap: 24px;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    text-align: center;
   }
 
   @media (max-width: 768px) {
@@ -153,7 +168,17 @@ const styles = `
     .nav-links {
       margin-top: 1rem;
     }
+
+    .hero-title {
+      font-size: 2rem;
+    }
   }
+    
+    header {
+    background-color: #121212; /* matches About page */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
 `;
 
 const FoodList: React.FC = () => {

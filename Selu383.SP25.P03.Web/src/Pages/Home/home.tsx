@@ -121,7 +121,7 @@ const styles = `
   }
 
   .movies-container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
   }
 
@@ -188,7 +188,7 @@ const Home: React.FC = () => {
     <>
       <style>{styles}</style>
 
-      <div className="min-h-screen bg-black w-full">
+      <div className="min-h-screen bg-black w-full border-4 border-red-500">
         <Navbar />
 
         {/* Hero Section */}
