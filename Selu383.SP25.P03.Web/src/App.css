@@ -1,7 +1,7 @@
 #root {
-  max-width: 1280px;
+  width: 100%; /* ensures root element spans entire width */
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem; /* adjust padding if needed */
   text-align: center;
 }
 
