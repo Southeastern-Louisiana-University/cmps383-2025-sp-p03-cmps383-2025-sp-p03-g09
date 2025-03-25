@@ -23,13 +23,9 @@ namespace Selu383.SP25.P03.Api.Data
                 }
 
                 // Find the specific location
-                var downtown = locations.FirstOrDefault(l => l.Name == "Downtown Cinema");
+                var neworleans = locations.FirstOrDefault(l => l.Name == "Lion's Den New Orleans");
 
-                // If the location doesn't exist, handle the error
-                if (downtown == null)
-                {
-                    throw new InvalidOperationException("Location 'Downtown Cinema' not found.");
-                }
+                
 
                 // Seed new food items
                 context.FoodItems.AddRange(
@@ -40,7 +36,7 @@ namespace Selu383.SP25.P03.Api.Data
                         Description = "Classic buttered popcorn.",
                         IsVegan = true,
                         ImageUrl = "https://i.imgur.com/CzDUZ7s.jpeg",
-                        Location = downtown
+                        Location = neworleans
                     },
                     new FoodItem
                     {
@@ -49,7 +45,7 @@ namespace Selu383.SP25.P03.Api.Data
                         Description = "Cheesy nachos with jalapenos.",
                         IsVegan = false,
                         ImageUrl = "https://i.imgur.com/rGDhMHP.jpeg",
-                        Location = downtown
+                        Location = neworleans
                     },
                      new FoodItem
                      {
@@ -58,7 +54,7 @@ namespace Selu383.SP25.P03.Api.Data
                          Description = "A warm, salted soft pretzel.",
                          IsVegan = true,
                          ImageUrl = "https://i.imgur.com/RYJEv4L.jpeg",
-                         Location = downtown
+                         Location = neworleans
                      }
                 );
 

@@ -10,60 +10,124 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using (var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                // Ensure Locations are already seeded
-                var downtown = context.Locations.FirstOrDefault(l => l.Name == "Downtown Cinema");
-                var uptown = context.Locations.FirstOrDefault(l => l.Name == "Uptown Theater");
-
-                // If locations are missing, throw an exception
-                if (downtown == null || uptown == null)
-                {
-                    throw new InvalidOperationException("Required locations are missing. Ensure SeedLocations.Initialize is called first.");
-                }
-
-                // Remove invalid theaters (those with invalid LocationId)
-                var invalidTheaters = context.Theaters.Where(t => !context.Locations.Any(l => l.Id == t.LocationId)).ToList();
-                if (invalidTheaters.Any())
-                {
-                    context.Theaters.RemoveRange(invalidTheaters);
-                    context.SaveChanges();
-                }
-
-                // Clear existing theaters before reseeding
+                // Delete all existing theaters first
                 context.Theaters.RemoveRange(context.Theaters);
-                context.SaveChanges();
 
-                // Reset identity (SQL Server example)
+                // Reset the identity column to start from 1 (or the appropriate starting point)
                 context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Theaters', RESEED, 0)");
 
-                // Add new theaters connected to the correct Location Ids
+                // Fetch all locations
+                var locations = context.Locations.ToList();
+                if (!locations.Any())
+                {
+                    throw new InvalidOperationException("No locations found to associate with theaters.");
+                }
+
+                // Find specific locations
+                var newyork = locations.FirstOrDefault(l => l.Name.Contains("New York"));
+                var neworleans = locations.FirstOrDefault(l => l.Name.Contains("New Orleans"));
+                var losangeles = locations.FirstOrDefault(l => l.Name.Contains("Los Angeles"));
+
+                // Seed new theaters, associating the Location directly to the Theater
                 context.Theaters.AddRange(
+                    // New York Theaters
                     new Theater
                     {
                         TheaterNumber = 1,
-                        SeatCount = 150,
-                        LocationId = downtown.Id
+                        SeatCount = 300,
+                        Location = newyork
                     },
                     new Theater
                     {
                         TheaterNumber = 2,
-                        SeatCount = 200,
-                        LocationId = uptown.Id
+                        SeatCount = 300,
+                        Location = newyork
                     },
                     new Theater
                     {
                         TheaterNumber = 3,
                         SeatCount = 300,
-                        LocationId = downtown.Id
+                        Location = newyork
                     },
                     new Theater
                     {
                         TheaterNumber = 4,
-                        SeatCount = 75,
-                        LocationId = uptown.Id
+                        SeatCount = 300,
+                        Location = newyork
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 5,
+                        SeatCount = 300,
+                        Location = newyork
+                    },
+
+                    // New Orleans Theaters
+                    new Theater
+                    {
+                        TheaterNumber = 1,
+                        SeatCount = 200,
+                        Location = neworleans
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 2,
+                        SeatCount = 200,
+                        Location = neworleans
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 3,
+                        SeatCount = 200,
+                        Location = neworleans
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 4,
+                        SeatCount = 200,
+                        Location = neworleans
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 5,
+                        SeatCount = 200,
+                        Location = neworleans
+                    },
+                    // Los Angeles Theaters
+                    new Theater
+                    {
+                        TheaterNumber = 1,
+                        SeatCount = 250,
+                        Location = losangeles
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 2,
+                        SeatCount = 250,
+                        Location = losangeles
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 3,
+                        SeatCount = 250,
+                        Location = losangeles
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 4,
+                        SeatCount = 250,
+                        Location = losangeles
+                    },
+                    new Theater
+                    {
+                        TheaterNumber = 5,
+                        SeatCount = 250,
+                        Location = losangeles
                     }
+
+
                 );
 
-                // Save changes to commit the new theaters to the database
                 context.SaveChanges();
             }
         }
