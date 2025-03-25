@@ -8,39 +8,9 @@ interface FoodItem {
   price: number;
   description: string;
   isVegan: boolean;
-  location: {
-    id: number;
-    name: string;
-  };
+  locationId: number;
+  imageUrl?: string;
 }
-
-// Mock data (replace with fetch from API later)
-const mockFoodItems: FoodItem[] = [
-  {
-    id: 1,
-    name: "Popcorn",
-    price: 6.99,
-    description: "Classic buttery popcorn in a large tub.",
-    isVegan: true,
-    location: { id: 1, name: "Main Concession" }
-  },
-  {
-    id: 2,
-    name: "Hot Dog",
-    price: 4.5,
-    description: "Grilled hot dog with mustard and ketchup.",
-    isVegan: false,
-    location: { id: 1, name: "Main Concession" }
-  },
-  {
-    id: 3,
-    name: "Vegan Nachos",
-    price: 5.75,
-    description: "Tortilla chips with vegan cheese and jalapeños.",
-    isVegan: true,
-    location: { id: 2, name: "Snack Bar B" }
-  }
-];
 
 const styles = `
   :root {
@@ -173,44 +143,79 @@ const styles = `
       font-size: 2rem;
     }
   }
-    
+
     header {
     background-color: #121212; /* matches About page */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
+.food-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
 `;
 
 const FoodList: React.FC = () => {
-  const [foods, setFoods] = useState<FoodItem[]>([]);
+    const [foods, setFoods] = useState<FoodItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+  
+    useEffect(() => {
+      const fetchFoodItems = async () => {
+        try {
+          const response = await fetch('/api/fooditems');
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          const data = await response.json();
+          setFoods(data);
+        } catch (err) {
+          setError("Failed to load food items.");
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchFoodItems();
+    }, []);
+  
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="min-h-screen bg-black text-white">
+          <Navbar />
+          <div className="food-container">
+            <h1 className="food-title">Concession Menu</h1>
+            {loading && <p>Loading...</p>}
+            {error && <p className="text-red-500">{error}</p>}
+            <div className="food-grid">
+              {foods.map((item) => (
+                <div className="food-card" key={item.id}>
+  {item.imageUrl && (
+    <img
+      src={item.imageUrl}
+      alt={item.name}
+      className="food-image"
+    />
+  )}
+  <h2 className="food-name">{item.name}</h2>
+  <p className="food-description">{item.description}</p>
+  <p className="food-price">${item.price.toFixed(2)}</p>
+  {item.isVegan && <span className="vegan-tag">Vegan</span>}
+  <p className="location-tag">Location ID: {item.locationId}</p>
+</div>
 
-  useEffect(() => {
-    // Simulate API fetch
-    setFoods(mockFoodItems);
-  }, []);
-
-  return (
-    <>
-      <style>{styles}</style>
-      <div className="min-h-screen bg-black text-white">
-        <Navbar />
-        <div className="food-container">
-          <h1 className="food-title">Concession Menu</h1>
-          <div className="food-grid">
-            {foods.map((item) => (
-              <div className="food-card" key={item.id}>
-                <h2 className="food-name">{item.name}</h2>
-                <p className="food-description">{item.description}</p>
-                <p className="food-price">${item.price.toFixed(2)}</p>
-                {item.isVegan && <span className="vegan-tag">Vegan</span>}
-                <p className="location-tag">Location: {item.location.name}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </>
-  );
-};
-
-export default FoodList;
+      </>
+    );
+  };
+  
+  export default FoodList;

@@ -21,38 +21,7 @@ interface Showtime {
   availableSeats: number;
 }
 
-// Mock data
-const mockMovies: Movie[] = [
-  {
-    id: 1,
-    title: "This",
-    posterUrl: "https://via.placeholder.com/250x370?text=This",
-    description: "This.",
-    duration: 142,
-    rating: "PG-13",
-    showtimes: []
-  },
-  {
-    id: 2,
-    title: "That",
-    posterUrl: "https://via.placeholder.com/250x370?text=That",
-    description: "That.",
-    duration: 115,
-    rating: "R",
-    showtimes: []
-  },
-  {
-    id: 3,
-    title: "Something else",
-    posterUrl: "https://via.placeholder.com/250x370?text=Something+Else",
-    description: "It sucks don't watch it.",
-    duration: 95,
-    rating: "PG",
-    showtimes: []
-  }
-];
 
-// CSS Styles
 const styles = `
   :root {
     --primary-color: #000000;
@@ -69,20 +38,7 @@ const styles = `
     padding: 0;
   }
 
-  header {
-    background-color: #121212;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  }
-
-  header nav a {
-    position: relative;
-    transition: color 0.3s ease;
-  }
-
-  header nav a:hover {
-    color: var(--accent-color);
-  }
-
+ 
   .hero-section {
     position: relative;
     background-color: #000000;
@@ -140,17 +96,35 @@ const styles = `
     transform: translateY(-2px);
   }
 
-  .movie-card {
-    background-color: #1e1e1e;
-    border-radius: 8px;
-    box-shadow: var(--card-shadow);
-    overflow: hidden;
-    transition: transform 0.3s ease;
-  }
+.movie-card {
+  display: flex;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
 
-  .movie-card:hover {
-    transform: translateY(-5px);
-  }
+.movie-card:hover {
+  transform: translateY(-5px);
+}
+
+.movie-poster {
+  width: 250px;
+  height: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.movie-details {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
 
   .movies-container {
     max-width: 100%;
@@ -180,16 +154,7 @@ const styles = `
     box-sizing: border-box;
   }
 
-  .cinema-logo {
-    color: var(--accent-color);
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
 
-  .nav-links {
-    display: flex;
-    gap: 24px;
-  }
 
   .hero-title {
     font-size: 3rem;
@@ -197,15 +162,6 @@ const styles = `
     text-align: center;
   }
 
-  @media (max-width: 768px) {
-    .nav-container {
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .nav-links {
-      margin-top: 1rem;
-    }
 
     .hero-title {
       font-size: 2rem;
@@ -215,10 +171,28 @@ const styles = `
 
 const Home: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    setMovies(mockMovies);
+    const fetchMovies = async () => {
+      try {
+        const response = await fetch('/api/movies');
+        if (!response.ok) {
+          throw new Error('Failed to fetch movies');
+        }
+        const data = await response.json();
+        setMovies(data.slice(0, 3)); // Only keep 3 featured movies
+      } catch (err) {
+        console.error(err);
+        setError('Unable to load featured movies.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
   }, []);
 
   return (
@@ -228,7 +202,7 @@ const Home: React.FC = () => {
       <div className="min-h-screen bg-black w-full border-4 border-red-500">
         <Navbar />
 
-        {/* Hero Section */}
+       
         <div className="hero-section">
         <div className="poster-scroll-bg">
   {/* Original set */}
@@ -255,29 +229,29 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
+        
         <main className="py-16">
           <section className="movies-container px-4">
             <h2 className="text-3xl font-bold section-title text-white">Featured Movies</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
               {movies.map((movie) => (
-                <div key={movie.id} className="movie-card w-full max-w-sm">
-                  <img src={movie.posterUrl} alt={movie.title} className="w-full h-64 object-cover" />
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold mb-2 text-white">{movie.title}</h3>
-                    <div className="flex justify-between mb-2 text-sm text-gray-400">
-                      <span>Runtime: {movie.duration} mins</span>
-                      <p>Rating: {movie.rating}</p>
-                    </div>
-                    <p className="text-gray-300 mb-4">{movie.description}</p>
-                    <button
-                      className="w-full ticket-button"
-                      onClick={() => navigate(`/movies/${movie.id}`)}
-                    >
-                      Select Showtimes
-                    </button>
-                  </div>
+              <div key={movie.id} className="movie-card w-full max-w-4xl mx-auto">
+              <img src={movie.posterUrl} alt={movie.title} className="movie-poster" />
+              <div className="movie-details">
+                <h3 className="text-xl font-bold mb-2 text-white">{movie.title}</h3>
+                <div className="text-sm text-gray-400 mb-2">
+                  <span>Runtime: {movie.duration} mins</span> • <span>Rating: {movie.rating}</span>
                 </div>
+                <p className="text-gray-300 mb-4">{movie.description}</p>
+                <button
+                  className="ticket-button mt-auto w-max"
+                  onClick={() => navigate(`/movies/${movie.id}`)}
+                >
+                  Select Showtimes
+                </button>
+              </div>
+            </div>
+                       
               ))}
             </div>
           </section>

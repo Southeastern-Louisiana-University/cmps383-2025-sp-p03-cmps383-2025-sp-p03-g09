@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const styles = `
   body {
     font-family: 'Inter', sans-serif;
-    background-image: url('https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=1950&q=80');
+    background-image: url('https://images.wallpaperscraft.com/image/single/film_creative_minimalism_74358_1920x1080.jpg');
     background-size: cover;
     background-position: center;
     height: 100vh;
