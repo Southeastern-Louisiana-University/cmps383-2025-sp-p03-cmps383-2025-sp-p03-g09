@@ -166,9 +166,6 @@ export default function HomeScreen() {
       <ThemedView style={styles.sectionContainer}>
         <ThemedView style={styles.sectionHeader}>
           <ThemedText type="subtitle">Now Playing</ThemedText>
-          <TouchableOpacity onPress={() => router.push('/movies')}>
-            <ThemedText style={styles.seeAllText}>See All</ThemedText>
-          </TouchableOpacity>
         </ThemedView>
         
         <FlatList
@@ -185,9 +182,6 @@ export default function HomeScreen() {
       <ThemedView style={styles.sectionContainer}>
         <ThemedView style={styles.sectionHeader}>
           <ThemedText type="subtitle">Coming Soon</ThemedText>
-          <TouchableOpacity onPress={() => router.push('/movies?filter=upcoming')}>
-            <ThemedText style={styles.seeAllText}>See All</ThemedText>
-          </TouchableOpacity>
         </ThemedView>
         
         <FlatList
@@ -214,7 +208,7 @@ export default function HomeScreen() {
           
           <TouchableOpacity 
             style={styles.ticketButton}
-            onPress={() => router.push('/movies')}
+   
           >
             <IconSymbol name="film" size={28} color="#000000" />
             <ThemedText type="defaultSemiBold">Buy Tickets</ThemedText>

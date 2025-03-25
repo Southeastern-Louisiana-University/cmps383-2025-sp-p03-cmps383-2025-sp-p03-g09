@@ -121,7 +121,6 @@ export default function TicketsScreen() {
             </ThemedText>
             <TouchableOpacity 
               style={styles.browseButton}
-              onPress={() => router.push('/movies')}
             >
               <ThemedText style={styles.browseButtonText}>Browse Movies</ThemedText>
             </TouchableOpacity>
