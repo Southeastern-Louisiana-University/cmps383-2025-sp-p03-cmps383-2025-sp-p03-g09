@@ -168,11 +168,12 @@ namespace Selu383.SP25.P03.Api.Data
                 .Property(l => l.Address)
                 .IsRequired();
 
-            builder.Entity<Location>();
-                // .HasMany(l => l.Theaters)
-                // .WithOne(t => t.Location)
-                // .HasForeignKey(t => t.LocationId)
-                //.OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Theater>()
+                .HasOne(t => t.Location)
+                .WithMany(l => l.Theaters)
+                .HasForeignKey(t => t.LocationId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
