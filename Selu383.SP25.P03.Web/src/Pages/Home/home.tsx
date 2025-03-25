@@ -171,8 +171,6 @@ const styles = `
 
 const Home: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -183,13 +181,8 @@ const Home: React.FC = () => {
           throw new Error('Failed to fetch movies');
         }
         const data = await response.json();
-        setMovies(data.slice(0, 3)); // Only keep 3 featured movies
-      } catch (err) {
-        console.error(err);
-        setError('Unable to load featured movies.');
-      } finally {
-        setLoading(false);
-      }
+        setMovies(data.slice(0, 3)); 
+      } catch (err) {}
     };
 
     fetchMovies();
