@@ -26,16 +26,16 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpGet]
-        public IQueryable<TheaterDto> GetAllTheaters()
+        public IEnumerable<TheaterDto> GetAllTheaters()
         {
-            return GetTheaterDtos(theaters);
+            return GetTheaterDtos(theaters.ToList());
         }
 
         [HttpGet]
         [Route("{id}")]
         public ActionResult<TheaterDto> GetTheaterById(int id)
         {
-            var result = GetTheaterDtos(theaters.Where(x => x.Id == id)).FirstOrDefault();
+            var result = GetTheaterDtos(theaters.Where(x => x.Id == id).ToList()).FirstOrDefault();
             if (result == null)
             {
                 return NotFound();
@@ -55,9 +55,9 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             var theater = new Theater
             {
-                Name = dto.Name,
-                Address = dto.Address,
-                SeatCount = dto.SeatCount
+                TheaterNumber = dto.TheaterNumber,
+                SeatCount = dto.SeatCount,
+                LocationId = dto.LocationId > 0 ? dto.LocationId : null
             };
             theaters.Add(theater);
 
@@ -78,32 +78,19 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest();
             }
 
-            var currentUser = await userManager.GetUserAsync(User);
-
-            if (!User.IsInRole(UserRoleNames.Admin) && currentUser.Id != dto.ManagerId)
-            {
-                return Forbid();
-            }
-
             var theater = theaters.FirstOrDefault(x => x.Id == id);
             if (theater == null)
             {
                 return NotFound();
             }
 
-            theater.Name = dto.Name;
-            theater.Address = dto.Address;
+            theater.TheaterNumber = dto.TheaterNumber;
             theater.SeatCount = dto.SeatCount;
-
-            if (User.IsInRole(UserRoleNames.Admin))
-            {
-                theater.ManagerId = dto.ManagerId;
-            }
+            theater.LocationId = dto.LocationId > 0 ? dto.LocationId : null;
 
             dataContext.SaveChanges();
 
             dto.Id = theater.Id;
-            dto.ManagerId = theater.ManagerId;
 
             return Ok(dto);
         }
@@ -128,23 +115,20 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         private bool IsInvalid(TheaterDto dto)
         {
-            return string.IsNullOrWhiteSpace(dto.Name) ||
-                   dto.Name.Length > 120 ||
-                   string.IsNullOrWhiteSpace(dto.Address) ||
+            return dto.TheaterNumber <= 0 ||
                    dto.SeatCount <= 0 ||
-                   dto.ManagerId != null && !users.Any(x => x.Id == dto.ManagerId);
+                   (dto.LocationId > 0 && !dataContext.Locations.Any(x => x.Id == dto.LocationId));
         }
 
-        private static IQueryable<TheaterDto> GetTheaterDtos(IQueryable<Theater> theaters)
+        private static IEnumerable<TheaterDto> GetTheaterDtos(IEnumerable<Theater> theaters)
         {
             return theaters
                 .Select(x => new TheaterDto
                 {
                     Id = x.Id,
-                    Name = x.Name,
-                    Address = x.Address,
+                    TheaterNumber = x.TheaterNumber,
                     SeatCount = x.SeatCount,
-                    ManagerId = x.ManagerId
+                    LocationId = x.LocationId ?? 0
                 });
         }
     }
