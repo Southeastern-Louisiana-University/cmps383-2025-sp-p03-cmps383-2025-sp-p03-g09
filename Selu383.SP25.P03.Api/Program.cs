@@ -74,6 +74,7 @@ namespace Selu383.SP25.P03.Api
                 SeedLocations.Initialize(scope.ServiceProvider);
                 SeedTheaters.Initialize(scope.ServiceProvider);
                 SeedMovies.Initialize(scope.ServiceProvider);
+                SeedFoodItems.Initialize(scope.ServiceProvider);
                 await SeedRoles.Initialize(scope.ServiceProvider);
                 await SeedUsers.Initialize(scope.ServiceProvider);
             }
