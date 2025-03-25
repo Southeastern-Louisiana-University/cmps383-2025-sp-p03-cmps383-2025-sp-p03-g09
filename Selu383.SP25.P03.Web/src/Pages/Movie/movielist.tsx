@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 // Movie interfaces
 interface Movie {
@@ -153,6 +154,7 @@ const styles = `
 
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
+    const navigate = useNavigate();
 
   useEffect(() => {
     setMovies(mockMovies);
@@ -178,7 +180,12 @@ const MovieList: React.FC = () => {
                       <p>Rating: {movie.rating}</p>
                     </div>
                     <p className="text-gray-300 mb-4">{movie.description}</p>
-                    <button className="w-full ticket-button">View Showtimes</button>
+                    <button
+                      className="w-full ticket-button"
+                      onClick={() => navigate(`/movies/${movie.id}`)}
+                    >
+                      Select Showtimes
+                    </button>
                   </div>
                 </div>
               ))}

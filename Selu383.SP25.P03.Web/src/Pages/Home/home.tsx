@@ -84,12 +84,44 @@ const styles = `
   }
 
   .hero-section {
+    position: relative;
     background-color: #000000;
     min-height: 600px;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+ .poster-scroll-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: max-content;
+  display: flex;
+  animation: scrollPosters 60s linear infinite;
+  z-index: 0;
+  opacity: 0.15;
+}
+
+@keyframes scrollPosters {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+
+  .poster-scroll-bg img {
+    height: 100%;
+    object-fit: cover;
+    margin-right: 10px;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
   }
 
   .ticket-button {
@@ -133,6 +165,11 @@ const styles = `
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scrollPosters {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
   }
 
   main {
@@ -193,8 +230,29 @@ const Home: React.FC = () => {
 
         {/* Hero Section */}
         <div className="hero-section">
-          <h2 className="hero-title">Welcome to Lion's Den Cinema</h2>
-          <button className="ticket-button">Get Tickets Now</button>
+        <div className="poster-scroll-bg">
+  {/* Original set */}
+  <img src="https://m.media-amazon.com/images/I/716P1xCmnPL.jpg" alt="Interstellar" />
+  <img src="https://m.media-amazon.com/images/I/71c05lTE03L._AC_SY679_.jpg" alt="Forrest Gump" />
+  <img src="https://m.media-amazon.com/images/I/81D+KJkO4SL.jpg" alt="Fight Club" />
+  <img src="https://m.media-amazon.com/images/I/71sj8Yt20qL.jpg" alt="Gladiator" />
+  <img src="https://m.media-amazon.com/images/I/71PfZFFz9yL._AC_UF894,1000_QL80_.jpg" alt="The Matrix" />
+  <img src="https://m.media-amazon.com/images/I/51E+o6036kL._AC_UF894,1000_QL80_.jpg" alt="Joker" />
+  <img src="https://www.yourdecoration.com/cdn/shop/files/grupo-erik-gpe5310-marvel-avengers-endgame-one-sheet-poster-61x91-5cm_4d72ce92-9678-4dc1-9e3f-dbb95b3f2c34.jpg?v=1721043138" alt="Avengers: Endgame" />
+
+  {/* Duplicated set for seamless loop */}
+  <img src="https://m.media-amazon.com/images/I/716P1xCmnPL.jpg" alt="Interstellar" />
+  <img src="https://m.media-amazon.com/images/I/71c05lTE03L._AC_SY679_.jpg" alt="Forrest Gump" />
+  <img src="https://m.media-amazon.com/images/I/81D+KJkO4SL.jpg" alt="Fight Club" />
+  <img src="https://m.media-amazon.com/images/I/71sj8Yt20qL.jpg" alt="Gladiator" />
+  <img src="https://m.media-amazon.com/images/I/71PfZFFz9yL._AC_UF894,1000_QL80_.jpg" alt="The Matrix" />
+  <img src="https://m.media-amazon.com/images/I/51E+o6036kL._AC_UF894,1000_QL80_.jpg" alt="Joker" />
+  <img src="https://www.yourdecoration.com/cdn/shop/files/grupo-erik-gpe5310-marvel-avengers-endgame-one-sheet-poster-61x91-5cm_4d72ce92-9678-4dc1-9e3f-dbb95b3f2c34.jpg?v=1721043138" alt="Avengers: Endgame" />
+</div>
+
+          <div className="hero-content">
+            <h2 className="hero-title">Welcome to Lion's Den Cinema</h2>
+          </div>
         </div>
 
         {/* Main Content */}
