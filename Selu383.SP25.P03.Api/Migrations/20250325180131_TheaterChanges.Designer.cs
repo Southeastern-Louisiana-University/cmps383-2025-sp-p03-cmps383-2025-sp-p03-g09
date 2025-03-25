@@ -12,8 +12,8 @@ using Selu383.SP25.P03.Api.Data;
 namespace Selu383.SP25.P03.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250325063919_ChangingTheaters")]
-    partial class ChangingTheaters
+    [Migration("20250325180131_TheaterChanges")]
+    partial class TheaterChanges
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -330,7 +330,7 @@ namespace Selu383.SP25.P03.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("LocationId")
+                    b.Property<int?>("LocationId")
                         .HasColumnType("int");
 
                     b.Property<int>("SeatCount")
@@ -635,8 +635,7 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.HasOne("Selu383.SP25.P03.Api.Features.Locations.Location", "Location")
                         .WithMany("Theaters")
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Location");
                 });

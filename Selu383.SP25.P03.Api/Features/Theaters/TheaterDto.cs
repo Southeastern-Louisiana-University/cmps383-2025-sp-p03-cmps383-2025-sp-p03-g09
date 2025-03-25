@@ -5,6 +5,6 @@
         public int Id { get; set; }
         public int TheaterNumber { get; set; }
         public int SeatCount { get; set; }
-        public int LocationId { get; set; }
+        public int? LocationId { get; set; }
     }
 }

@@ -10,23 +10,14 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using (var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                // Ensure Locations are seeded first
-                if (!context.Locations.Any())
-                {
-                    context.Locations.AddRange(
-                        new Location { Name = "Downtown Cinema", Address = "123 Main St" },
-                        new Location { Name = "Uptown Cinema", Address = "456 Elm St" }
-                    );
-                    context.SaveChanges();
-                }
-
-                // Fetch the locations dynamically
+                // Ensure Locations are already seeded
                 var downtown = context.Locations.FirstOrDefault(l => l.Name == "Downtown Cinema");
-                var uptown = context.Locations.FirstOrDefault(l => l.Name == "Uptown Cinema");
+                var uptown = context.Locations.FirstOrDefault(l => l.Name == "Uptown Theater");
 
+                // If locations are missing, throw an exception
                 if (downtown == null || uptown == null)
                 {
-                    throw new InvalidOperationException("Required locations are missing.");
+                    throw new InvalidOperationException("Required locations are missing. Ensure SeedLocations.Initialize is called first.");
                 }
 
                 // Remove invalid theaters (those with invalid LocationId)
@@ -41,7 +32,10 @@ namespace Selu383.SP25.P03.Api.Data
                 context.Theaters.RemoveRange(context.Theaters);
                 context.SaveChanges();
 
-                // Add new theaters
+                // Reset identity (SQL Server example)
+                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Theaters', RESEED, 0)");
+
+                // Add new theaters connected to the correct Location Ids
                 context.Theaters.AddRange(
                     new Theater
                     {

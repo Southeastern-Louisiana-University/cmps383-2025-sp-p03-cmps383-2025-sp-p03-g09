@@ -57,7 +57,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             {
                 TheaterNumber = dto.TheaterNumber,
                 SeatCount = dto.SeatCount,
-                LocationId = dto.LocationId
+                LocationId = dto.LocationId > 0 ? dto.LocationId : null
             };
             theaters.Add(theater);
 
@@ -86,7 +86,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             theater.TheaterNumber = dto.TheaterNumber;
             theater.SeatCount = dto.SeatCount;
-            theater.LocationId = dto.LocationId;
+            theater.LocationId = dto.LocationId > 0 ? dto.LocationId : null;
 
             dataContext.SaveChanges();
 
@@ -117,7 +117,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         {
             return dto.TheaterNumber <= 0 ||
                    dto.SeatCount <= 0 ||
-                   !dataContext.Locations.Any(x => x.Id == dto.LocationId);
+                   (dto.LocationId > 0 && !dataContext.Locations.Any(x => x.Id == dto.LocationId));
         }
 
         private static IEnumerable<TheaterDto> GetTheaterDtos(IEnumerable<Theater> theaters)
@@ -128,7 +128,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Id = x.Id,
                     TheaterNumber = x.TheaterNumber,
                     SeatCount = x.SeatCount,
-                    LocationId = x.LocationId
+                    LocationId = x.LocationId ?? 0
                 });
         }
     }

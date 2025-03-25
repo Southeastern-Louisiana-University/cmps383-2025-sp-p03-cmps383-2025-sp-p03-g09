@@ -5,11 +5,14 @@
 namespace Selu383.SP25.P03.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class ChangingTheaters : Migration
+    public partial class TheaterChanges : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Delete all records from Theaters to avoid foreign key constraint issues
+            migrationBuilder.Sql("DELETE FROM Theaters");
+
             migrationBuilder.DropForeignKey(
                 name: "FK_Theaters_AspNetUsers_ManagerId",
                 table: "Theaters");
@@ -34,16 +37,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                 name: "Name",
                 table: "Theaters");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "LocationId",
-                table: "Theaters",
-                type: "int",
-                nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "int",
-                oldNullable: true);
-
             migrationBuilder.AddColumn<int>(
                 name: "TheaterNumber",
                 table: "Theaters",
@@ -57,8 +50,9 @@ namespace Selu383.SP25.P03.Api.Migrations
                 column: "LocationId",
                 principalTable: "Locations",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.SetNull);
         }
+
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -70,14 +64,6 @@ namespace Selu383.SP25.P03.Api.Migrations
             migrationBuilder.DropColumn(
                 name: "TheaterNumber",
                 table: "Theaters");
-
-            migrationBuilder.AlterColumn<int>(
-                name: "LocationId",
-                table: "Theaters",
-                type: "int",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "int");
 
             migrationBuilder.AddColumn<string>(
                 name: "Address",

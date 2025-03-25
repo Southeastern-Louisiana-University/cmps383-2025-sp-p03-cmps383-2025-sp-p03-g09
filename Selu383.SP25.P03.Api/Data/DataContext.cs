@@ -172,8 +172,7 @@ namespace Selu383.SP25.P03.Api.Data
                 .HasOne(t => t.Location)
                 .WithMany(l => l.Theaters)
                 .HasForeignKey(t => t.LocationId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
