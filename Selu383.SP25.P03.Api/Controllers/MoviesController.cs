@@ -20,16 +20,16 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpGet]
-        public IQueryable<MovieDto> GetAllMovies()
+        public IEnumerable<MovieDto> GetAllMovies()
         {
-            return GetMovieDtos(movies);
+            return GetMovieDtos(movies.ToList());
         }
 
         [HttpGet]
         [Route("{id}")]
         public ActionResult<MovieDto> GetMovieById(int id)
         {
-            var result = GetMovieDtos(movies.Where(x => x.Id == id)).FirstOrDefault();
+            var result = GetMovieDtos(movies.Where(x => x.Id == id).ToList()).FirstOrDefault();
             if (result == null)
             {
                 return NotFound();
@@ -53,7 +53,9 @@ namespace Selu383.SP25.P03.Api.Controllers
                 Duration = dto.Duration,
                 Rating = dto.Rating,
                 Description = dto.Description,
-                ReleaseDate = dto.ReleaseDate
+                ReleaseDate = dto.ReleaseDate,
+                PosterUrl = dto.PosterUrl,
+                YoutubeUrl = dto.YoutubeUrl
             };
             movies.Add(movie);
 
@@ -85,6 +87,8 @@ namespace Selu383.SP25.P03.Api.Controllers
             movie.Rating = dto.Rating;
             movie.Description = dto.Description;
             movie.ReleaseDate = dto.ReleaseDate;
+            movie.PosterUrl = dto.PosterUrl;
+            movie.YoutubeUrl = dto.YoutubeUrl;
 
             dataContext.SaveChanges();
 
@@ -121,7 +125,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                    dto.ReleaseDate == default;
         }
 
-        private static IQueryable<MovieDto> GetMovieDtos(IQueryable<Movie> movies)
+        private static IEnumerable<MovieDto> GetMovieDtos(IEnumerable<Movie> movies)
         {
             return movies
                 .Select(x => new MovieDto
@@ -131,7 +135,9 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Duration = x.Duration,
                     Rating = x.Rating,
                     Description = x.Description,
-                    ReleaseDate = x.ReleaseDate
+                    ReleaseDate = x.ReleaseDate,
+                    PosterUrl = x.PosterUrl,
+                    YoutubeUrl = x.YoutubeUrl
                 });
         }
     }
