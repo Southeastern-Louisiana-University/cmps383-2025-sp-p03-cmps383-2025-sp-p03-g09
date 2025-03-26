@@ -53,6 +53,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 Price = dto.Price,
                 Description = dto.Description,
                 IsVegan = dto.IsVegan,
+                ImageUrl = dto.ImageUrl,
                 LocationId = dto.LocationId
             };
             foodItems.Add(foodItem);
@@ -84,6 +85,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             foodItem.Price = dto.Price;
             foodItem.Description = dto.Description;
             foodItem.IsVegan = dto.IsVegan;
+            foodItem.ImageUrl = dto.ImageUrl;
             foodItem.LocationId = dto.LocationId;
 
             dataContext.SaveChanges();
@@ -129,6 +131,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Price = x.Price,
                     Description = x.Description,
                     IsVegan = x.IsVegan,
+                    ImageUrl = x.ImageUrl,
                     LocationId = x.LocationId
                 });
         }

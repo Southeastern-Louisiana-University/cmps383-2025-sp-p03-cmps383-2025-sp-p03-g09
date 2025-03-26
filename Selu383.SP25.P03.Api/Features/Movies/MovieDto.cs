@@ -8,5 +8,7 @@ namespace Selu383.SP25.P03.Api.Features.Movies
         public required string Rating { get; set; }
         public required string Description { get; set; }
         public DateTime ReleaseDate { get; set; }
+        public required string PosterUrl { get; set; }
+        public required string YoutubeUrl { get; set; }
     }
 }
