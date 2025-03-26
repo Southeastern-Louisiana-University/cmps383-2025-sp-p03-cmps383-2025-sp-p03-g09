@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 // Food item interface
 interface FoodItem {
@@ -26,6 +27,22 @@ const styles = `
     color: var(--text-light);
     margin: 0;
     padding: 0;
+  }
+
+  .ticket-button {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .ticket-button:hover {
+    background-color: #cc0000;
+    transform: translateY(-2px);
   }
 
   .food-container {
@@ -163,6 +180,7 @@ const FoodList: React.FC = () => {
     const [foods, setFoods] = useState<FoodItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
   
     useEffect(() => {
       const fetchFoodItems = async () => {
@@ -208,6 +226,12 @@ const FoodList: React.FC = () => {
   <p className="food-price">${item.price.toFixed(2)}</p>
   {item.isVegan && <span className="vegan-tag">Vegan</span>}
   <p className="location-tag">Location ID: {item.locationId}</p>
+  <button
+    className="ticket-button w-max"
+    onClick={() => navigate(`/food/:id`)}
+  >
+    Buy
+  </button>
 </div>
 
               ))}
