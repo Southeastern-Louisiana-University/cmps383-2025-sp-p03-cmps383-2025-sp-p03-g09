@@ -14,6 +14,12 @@ interface Movie {
   youtubeUrl: string;
 }
 
+interface UserDto {
+  id: string;
+  userName: string;
+  roles: string[];
+}
+
 const styles = `
   :root {
     --primary-color: #000000;
@@ -139,15 +145,51 @@ const styles = `
       height: auto;
     }
   }
+  .create-button {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .create-button:hover {
+    background-color: #cc0000;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
 `;
 
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [user, setUser] = useState<UserDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/authentication/me', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user info');
+      }
+    };
+
     const fetchMovies = async () => {
       try {
         const response = await fetch('/api/movies');
@@ -164,8 +206,11 @@ const MovieList: React.FC = () => {
       }
     };
 
+    fetchUser();
     fetchMovies();
   }, []);
+
+  const isAdmin = user?.roles.includes('Admin');
 
   return (
     <>
@@ -175,7 +220,14 @@ const MovieList: React.FC = () => {
         <Navbar />
         <main className="py-16">
           <section className="movies-container">
-            <h2 className="text-3xl font-bold text-white text-center mb-8">Now Showing</h2>
+            <div className="top-bar">
+              <h2 className="text-3xl font-bold text-white">Now Showing</h2>
+              {isAdmin && (
+                <button className="create-button" onClick={() => navigate('/movies/create')}>
+                  + Create Movie
+                </button>
+              )}
+            </div>
 
             {loading && <p className="text-center text-gray-400">Loading...</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
