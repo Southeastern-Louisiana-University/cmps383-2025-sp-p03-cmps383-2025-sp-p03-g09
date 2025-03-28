@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 
-// TypeScript interfaces
+// Interfaces
 interface Movie {
   id: number;
   title: string;
@@ -20,6 +20,26 @@ interface Showtime {
   theater: string;
   availableSeats: number;
 }
+
+interface Location {
+  id: number;
+  name: string;
+  address: string;
+}
+
+const setCookie = (name: string, value: string, days: number) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+};
+
+const getCookie = (name: string): string | null => {
+  const cookies = document.cookie.split('; ').reduce((acc: any, cookie) => {
+    const [key, val] = cookie.split('=');
+    acc[key] = val;
+    return acc;
+  }, {});
+  return cookies[name] ? decodeURIComponent(cookies[name]) : null;
+};
 
 const styles = `
   :root {
@@ -155,20 +175,54 @@ const styles = `
       font-size: 2rem;
     }
   }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background-color: #1e1e1e;
+    padding: 2rem;
+    border-radius: 10px;
+    color: white;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+  }
+
+  .modal-content ul li {
+    margin-bottom: 1rem;
+  }
+
+  .modal-content ul li:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const Home: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [posterUrls, setPosterUrls] = useState<string[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [showLocationModal, setShowLocationModal] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
         const response = await fetch('/api/movies');
-        if (!response.ok) {
-          throw new Error('Failed to fetch movies');
-        }
+        if (!response.ok) throw new Error('Failed to fetch movies');
         const data = await response.json();
         setMovies(data.slice(0, 3));
         setPosterUrls(data.map((m: Movie) => m.posterUrl).filter(Boolean));
@@ -177,12 +231,56 @@ const Home: React.FC = () => {
       }
     };
 
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch('/api/locations');
+        if (!response.ok) throw new Error('Failed to fetch locations');
+        const data = await response.json();
+        setLocations(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const stored = getCookie('selectedLocation');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setSelectedLocation(parsed);
+      setShowLocationModal(false);
+    }
+
     fetchMovies();
+    fetchLocations();
   }, []);
 
   return (
     <>
       <style>{styles}</style>
+
+      {showLocationModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="text-xl font-bold mb-4">Choose The Location You Will Be Visiting:</h2>
+            <ul>
+              {locations.map((loc) => (
+                <li key={loc.id}>
+                  <button
+                    className="ticket-button w-full"
+                    onClick={() => {
+                      setSelectedLocation(loc);
+                      localStorage.setItem('selectedLocation', JSON.stringify(loc)); // optional
+                      setCookie('selectedLocation', JSON.stringify(loc), 30); // expires in 30 days
+                      setShowLocationModal(false);
+                    }}
+                  >
+                    {loc.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       <div className="min-h-screen bg-black w-full border-4 border-red-500">
         <Navbar />
@@ -195,7 +293,7 @@ const Home: React.FC = () => {
                 src={url}
                 alt={`Poster ${idx}`}
                 onError={(e) => {
-                  e.currentTarget.src = "/fallback.jpg"; // Optional: add fallback
+                  e.currentTarget.src = "/fallback.jpg";
                 }}
               />
             ))}
