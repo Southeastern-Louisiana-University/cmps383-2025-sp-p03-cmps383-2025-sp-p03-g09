@@ -6,6 +6,7 @@ import About from './Pages/About/about';
 import FoodList from './Pages/Food/foodlist';
 import Login from './Pages/Account/login';
 import MovieCreate from './Pages/Movie/moviecreate';
+import SelectTicket from './Pages/Ticket/selectticket';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/food" element={<FoodList />} />
         <Route path="/login" element={<Login />} />
         <Route path="/movies/create" element={<MovieCreate />} />
+        <Route path="/movies/:movieId/select-ticket" element={<SelectTicket />} />
       </Routes>
     </Router>
   );
