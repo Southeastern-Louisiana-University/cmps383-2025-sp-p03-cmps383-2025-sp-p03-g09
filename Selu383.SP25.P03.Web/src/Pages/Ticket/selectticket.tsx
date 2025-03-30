@@ -40,7 +40,7 @@ const SelectTickets: React.FC = () => {
     return [10, 20]; 
   };
 
-  const [rows, cols] = getGridDimensions(seatCount);
+  const [, cols] = getGridDimensions(seatCount);
 
   return (
     <div className="min-h-screen bg-black text-white">
