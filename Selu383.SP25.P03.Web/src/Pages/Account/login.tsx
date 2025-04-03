@@ -59,6 +59,8 @@ const styles = `
 
   .login-button:hover {
     background-color: #468973;
+    color: #ffffff; 
+    text-shadow: 0 0 2px rgba(255,255,255,0.3); 
   }
 
   @keyframes fadeIn {
