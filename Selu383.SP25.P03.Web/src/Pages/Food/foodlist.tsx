@@ -91,8 +91,21 @@ const FoodList: React.FC = () => {
   return (
     <>
       <style>{`
+        :root {
+          --primary-color: #000000;
+          --accent-color: #10b981;
+          --text-light: #ffffff;
+          --text-dark: #121212;
+          --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+          background-color: var(--primary-color);
+          color: var(--text-light);
+        }
+          
         .add-button {
-          background-color: #ff0000;
+          background-color: #10b981;
           color: white;
           padding: 10px 16px;
           font-size: 1rem;
@@ -104,7 +117,7 @@ const FoodList: React.FC = () => {
         }
 
         .add-button:hover {
-          background-color: #cc0000;
+          background-color: #468973;
         }
 
         .food-container {
@@ -122,7 +135,7 @@ const FoodList: React.FC = () => {
 
         .food-title {
           font-size: 2.5rem;
-          color: #ff0000;
+          color: #10b981;
         }
 
         .food-grid {
@@ -169,12 +182,12 @@ const FoodList: React.FC = () => {
         }
 
         .delete-button {
-          background-color: #990000;
+          background-color: #336353;
           color: white;
         }
 
         .delete-button:hover {
-          background-color: #cc0000;
+          background-color: #468973;
         }
 
         .modal-backdrop {
@@ -212,7 +225,7 @@ const FoodList: React.FC = () => {
         }
 
         .modal-buttons .confirm {
-          background-color: #ff0000;
+          background-color: #10b981;
           color: white;
           border: none;
         }
@@ -245,7 +258,7 @@ const FoodList: React.FC = () => {
                 {item.imageUrl && <img src={item.imageUrl} alt={item.name} style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: '6px', marginBottom: '1rem' }} />}
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{item.name}</h2>
                 <p>{item.description}</p>
-                <p style={{ color: '#ff0000', fontWeight: 'bold' }}>${item.price.toFixed(2)}</p>
+                <p style={{ color: '#10b981', fontWeight: 'bold' }}>${item.price.toFixed(2)}</p>
                 {item.isVegan && <span style={{ backgroundColor: 'green', color: 'white', padding: '0.2rem 0.5rem', borderRadius: '5px', fontSize: '0.8rem' }}>Vegan</span>}
 
                 {isAdmin && (

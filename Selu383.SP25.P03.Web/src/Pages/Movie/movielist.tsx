@@ -91,7 +91,7 @@ const MovieList: React.FC = () => {
       <style>{`
         :root {
           --primary-color: #000000;
-          --accent-color: #ff0000;
+          --accent-color: #10b981;
           --text-light: #ffffff;
           --text-dark: #121212;
           --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -114,7 +114,7 @@ const MovieList: React.FC = () => {
         }
 
         .ticket-button:hover {
-          background-color: #cc0000;
+          background-color: #468973;
         }
 
         .movie-card {
@@ -172,7 +172,7 @@ const MovieList: React.FC = () => {
         }
 
         .create-button:hover {
-          background-color: #cc0000;
+          background-color: #468973;
         }
 
         .admin-buttons {
@@ -195,7 +195,7 @@ const MovieList: React.FC = () => {
         }
 
         .delete-button {
-          background-color: #990000;
+          background-color: #336353;
           color: white;
           padding: 10px 16px;
           border-radius: 6px;
@@ -204,7 +204,7 @@ const MovieList: React.FC = () => {
         }
 
         .delete-button:hover {
-          background-color: #cc0000;
+          background-color: #468973;
         }
 
         .modal-backdrop {

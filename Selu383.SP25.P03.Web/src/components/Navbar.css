@@ -26,7 +26,7 @@
   .navbar-logo {
     font-size: 2rem;
     font-weight: bold;
-    color: #e3342f; /* red */
+    color: #10b981; /* green */
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     text-decoration: none;
   }
@@ -46,7 +46,7 @@
   }
   
   .nav-link:hover {
-    color: #e3342f;
+    color: #468973;
   }
   
   .navbar-user {
@@ -67,7 +67,7 @@
   
   .user-button:hover,
   .login-button:hover {
-    color: #e3342f;
+    color: #468973;
   }
   
   .dropdown {

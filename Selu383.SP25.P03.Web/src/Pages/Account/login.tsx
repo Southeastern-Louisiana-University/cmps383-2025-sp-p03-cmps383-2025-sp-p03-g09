@@ -30,7 +30,7 @@ const styles = `
   .login-title {
     font-size: 2rem;
     margin-bottom: 1rem;
-    color: #ff4444;
+    color: #10b981;
   }
 
   .input-field {
@@ -47,7 +47,7 @@ const styles = `
   .login-button {
     width: 100%;
     padding: 10px;
-    background-color: #ff4444;
+    background-color: #10b981;
     color: white;
     border-radius: 4px;
     border: none;
@@ -58,7 +58,7 @@ const styles = `
   }
 
   .login-button:hover {
-    background-color: #cc0000;
+    background-color: #468973;
   }
 
   @keyframes fadeIn {

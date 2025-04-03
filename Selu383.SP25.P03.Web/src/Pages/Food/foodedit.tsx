@@ -113,7 +113,7 @@ const FoodEdit: React.FC = () => {
           text-align: center;
           font-size: 28px;
           margin-bottom: 20px;
-          color: #ff0000;
+          color: #10b981;
         }
         .input-group {
           margin-bottom: 16px;
@@ -143,7 +143,7 @@ const FoodEdit: React.FC = () => {
         .submit-btn {
           width: 100%;
           padding: 12px;
-          background-color: #ff0000;
+          background-color: #10b981;
           color: white;
           font-weight: bold;
           border: none;
@@ -152,7 +152,7 @@ const FoodEdit: React.FC = () => {
           font-size: 16px;
         }
         .submit-btn:hover {
-          background-color: #cc0000;
+          background-color: #468973;
         }
         .error {
           text-align: center;
