@@ -48,41 +48,59 @@ namespace Selu383.SP25.P03.Api.Controllers
         [Authorize]
         public ActionResult<OrderDto> CreateOrder(OrderDto dto)
         {
+            Console.WriteLine("Received order payload:");
+            Console.WriteLine($"Price: {dto.Price}, UserId: {dto.UserId}, TheaterId: {dto.TheaterId}, SeatId: {dto.SeatId}, FoodItemIds: {string.Join(", ", dto.FoodItemIds)}");
+
             if (IsInvalid(dto))
             {
-                return BadRequest();
+                Console.WriteLine("Invalid order data:");
+                Console.WriteLine($"Price: {dto.Price}, UserId: {dto.UserId}, TheaterId: {dto.TheaterId}, SeatId: {dto.SeatId}, FoodItemIds: {string.Join(", ", dto.FoodItemIds)}");
+                return BadRequest(new { Message = "Invalid order data provided." });
             }
 
-            var order = new Order
+            try
             {
-                Price = dto.Price,
-                UserId = dto.UserId,
-                TheaterId = dto.TheaterId,
-                SeatId = dto.SeatId
-            };
-
-            orders.Add(order);
-            dataContext.SaveChanges();
-
-            foreach (var foodItemId in dto.FoodItemIds)
-            {
-                var foodItem = foodItems.FirstOrDefault(x => x.Id == foodItemId);
-                if (foodItem != null)
+                var order = new Order
                 {
-                    var orderFoodItem = new OrderFoodItem
+                    Price = dto.Price,
+                    UserId = dto.UserId,
+                    TheaterId = dto.TheaterId,
+                    SeatId = dto.SeatId
+                };
+
+                orders.Add(order);
+                dataContext.SaveChanges(); // Save the order to generate its ID
+
+                foreach (var foodItemId in dto.FoodItemIds)
+                {
+                    var foodItem = foodItems.FirstOrDefault(x => x.Id == foodItemId);
+                    if (foodItem != null)
                     {
-                        OrderId = order.Id,
-                        FoodItemId = foodItem.Id
-                    };
-                    orderFoodItems.Add(orderFoodItem);
+                        var orderFoodItem = new OrderFoodItem
+                        {
+                            OrderId = order.Id,
+                            FoodItemId = foodItem.Id
+                        };
+                        orderFoodItems.Add(orderFoodItem);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Food item with ID {foodItemId} not found.");
+                    }
                 }
+
+                dataContext.SaveChanges(); // Save the associated food items
+
+                dto.Id = order.Id;
+
+                return CreatedAtAction(nameof(GetOrderById), new { id = dto.Id }, dto);
             }
-
-            dataContext.SaveChanges();
-
-            dto.Id = order.Id;
-
-            return CreatedAtAction(nameof(GetOrderById), new { id = dto.Id }, dto);
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error creating order:");
+                Console.WriteLine(ex); // Log the full exception details
+                return StatusCode(500, new { Message = "An error occurred while creating the order." });
+            }
         }
 
         [HttpPut]
@@ -146,13 +164,69 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("user")]
+        [Authorize]
+        public async Task<ActionResult<List<OrderDto>>> GetOrdersForUser()
+        {
+            try
+            {
+                var currentUser = await dataContext.Users.FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
+                if (currentUser == null)
+                {
+                    return Unauthorized(new { Message = "User not found." });
+                }
+
+                var userOrders = await orders
+                    .Where(o => o.UserId == currentUser.Id)
+                    .Select(o => new OrderDto
+                    {
+                        Id = o.Id,
+                        Price = o.Price,
+                        UserId = o.UserId,
+                        TheaterId = o.TheaterId,
+                        SeatId = o.SeatId,
+                        FoodItemIds = o.OrderFoodItems.Select(ofi => ofi.FoodItemId).ToList()
+                    })
+                    .ToListAsync();
+
+                return Ok(userOrders);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error fetching user orders:", ex);
+                return StatusCode(500, new { Message = "An error occurred while fetching orders." });
+            }
+        }
+
         private bool IsInvalid(OrderDto dto)
         {
-            return dto.Price <= 0 ||
-                   dto.UserId <= 0 ||
-                   dto.TheaterId <= 0 ||
-                   dto.SeatId <= 0 ||
-                   !dto.FoodItemIds.Any();
+            if (dto.Price <= 0)
+            {
+                Console.WriteLine("Invalid order: Price must be greater than 0.");
+                return true;
+            }
+            if (dto.UserId <= 0)
+            {
+                Console.WriteLine("Invalid order: UserId must be greater than 0.");
+                return true;
+            }
+            if (dto.TheaterId <= 0)
+            {
+                Console.WriteLine("Invalid order: TheaterId must be greater than 0.");
+                return true;
+            }
+            if (dto.SeatId <= 0)
+            {
+                Console.WriteLine("Invalid order: SeatId must be greater than 0.");
+                return true;
+            }
+            if (dto.FoodItemIds == null || !dto.FoodItemIds.Any())
+            {
+                Console.WriteLine("Invalid order: FoodItemIds must not be empty.");
+                return true;
+            }
+            return false;
         }
 
         private static IQueryable<OrderDto> GetOrderDtos(IQueryable<Order> orders)

@@ -7,6 +7,8 @@ import FoodList from './Pages/Food/foodlist';
 import Login from './Pages/Account/login';
 import MovieCreate from './Pages/Movie/moviecreate';
 import SelectTicket from './Pages/Ticket/selectticket';
+import PurchaseTicket from './Pages/Ticket/purchaseticket';
+import Cart from './Pages/Cart/cart';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/movies/create" element={<MovieCreate />} />
         <Route path="/movies/:movieId/select-ticket" element={<SelectTicket />} />
+        <Route path="/movies/:movieId/purchase" element={<PurchaseTicket />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </Router>
   );

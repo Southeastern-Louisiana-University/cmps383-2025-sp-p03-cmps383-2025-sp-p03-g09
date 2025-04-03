@@ -22,7 +22,8 @@ namespace Selu383.SP25.P03.Api.Data
                         LocationId = 1, // Assuming this corresponds to a seeded location
                         TheaterId = 1, // Assuming this corresponds to a seeded theater
                         SeatId = 1,    // Assuming this corresponds to a seeded seat
-                        MovieId = 1    // Assuming this corresponds to a seeded movie
+                        MovieId = 1,   // Assuming this corresponds to a seeded movie
+                        Showtime = "2025-03-01T14:00:00"
                     },
                     new Ticket
                     {
@@ -30,7 +31,8 @@ namespace Selu383.SP25.P03.Api.Data
                         LocationId = 2,
                         TheaterId = 2,
                         SeatId = 2,
-                        MovieId = 2
+                        MovieId = 2,
+                        Showtime = "2025-03-01T18:00:00"
                     },
                     new Ticket
                     {
@@ -38,7 +40,8 @@ namespace Selu383.SP25.P03.Api.Data
                         LocationId = 3,
                         TheaterId = 3,
                         SeatId = 3,
-                        MovieId = 3
+                        MovieId = 3,
+                        Showtime = "2025-03-01T20:00:00"
                     }
                 );
 

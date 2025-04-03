@@ -53,7 +53,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                 LocationId = dto.LocationId,
                 TheaterId = dto.TheaterId,
                 SeatId = dto.SeatId,
-                MovieId = dto.MovieId
+                MovieId = dto.MovieId,
+                Showtime = dto.Showtime
             };
             tickets.Add(ticket);
 
@@ -85,6 +86,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             ticket.TheaterId = dto.TheaterId;
             ticket.SeatId = dto.SeatId;
             ticket.MovieId = dto.MovieId;
+            ticket.Showtime = dto.Showtime;
 
             dataContext.SaveChanges();
 
@@ -130,7 +132,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                     LocationId = x.LocationId,
                     TheaterId = x.TheaterId,
                     SeatId = x.SeatId,
-                    MovieId = x.MovieId
+                    MovieId = x.MovieId,
+                    Showtime = x.Showtime
                 });
         }
     }

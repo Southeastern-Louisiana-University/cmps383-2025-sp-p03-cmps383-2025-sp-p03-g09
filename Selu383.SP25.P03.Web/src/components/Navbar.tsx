@@ -96,52 +96,57 @@ const Navbar: React.FC = () => {
           </div>
         </nav>
 
-       {/* Right: User & Location */}
-<div className="navbar-controls">
-  {/* Location Dropdown */}
-  <div className="location-select" ref={locationDropdownRef}>
-    <button
-      onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-      className="location-button"
-    >
-      {selectedLocation ? selectedLocation.name : 'No Location Selected'}
-    </button>
-    {showLocationDropdown && (
-      <div className="dropdown">
-        {locations.map(loc => (
-          <button
-            key={loc.id}
-            className="dropdown-item"
-            onClick={() => handleLocationChange(loc)}
-          >
-            {loc.name}
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
+        {/* Right: User & Location */}
+        <div className="navbar-controls">
+          {/* Cart Link */}
+          <Link to="/cart" className="cart-link">
+            Cart
+          </Link>
 
-  {/* User/Login Dropdown */}
-  <div className="navbar-user" ref={userDropdownRef}>
-    {user ? (
-      <>
-        <button
-          onClick={() => setShowUserDropdown(!showUserDropdown)}
-          className="user-button"
-        >
-          {user.userName}
-        </button>
-        {showUserDropdown && (
-          <div className="dropdown">
-            <button className="dropdown-item" onClick={handleLogout}>Sign Out</button>
+          {/* Location Dropdown */}
+          <div className="location-select" ref={locationDropdownRef}>
+            <button
+              onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+              className="location-button"
+            >
+              {selectedLocation ? selectedLocation.name : 'No Location Selected'}
+            </button>
+            {showLocationDropdown && (
+              <div className="dropdown">
+                {locations.map(loc => (
+                  <button
+                    key={loc.id}
+                    className="dropdown-item"
+                    onClick={() => handleLocationChange(loc)}
+                  >
+                    {loc.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </>
-    ) : (
-      <Link to="/login" className="login-button">Login</Link>
-    )}
-  </div>
-</div>
+
+          {/* User/Login Dropdown */}
+          <div className="navbar-user" ref={userDropdownRef}>
+            {user ? (
+              <>
+                <button
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="user-button"
+                >
+                  {user.userName}
+                </button>
+                {showUserDropdown && (
+                  <div className="dropdown">
+                    <button className="dropdown-item" onClick={handleLogout}>Sign Out</button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <Link to="/login" className="login-button">Login</Link>
+            )}
+          </div>
+        </div>
 
       </div>
     </header>

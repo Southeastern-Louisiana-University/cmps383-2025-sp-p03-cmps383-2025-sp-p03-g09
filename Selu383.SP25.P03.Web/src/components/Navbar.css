@@ -49,6 +49,18 @@
     color: #e3342f;
   }
   
+  .cart-link {
+    font-size: 1rem;
+    font-weight: 500;
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .cart-link:hover {
+    color: #e3342f;
+  }
+  
   .navbar-user {
     position: relative;
   }
@@ -139,7 +151,7 @@
   .navbar-controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1rem; /* Adjust spacing between Cart and Location */
   }
   
 
@@ -176,4 +188,3 @@
   .dropdown-item:hover {
     background-color: #333;
   }
-  
