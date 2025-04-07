@@ -76,6 +76,8 @@ namespace Selu383.SP25.P03.Api
                 SeedTheaters.Initialize(scope.ServiceProvider);
                 SeedMovies.Initialize(scope.ServiceProvider);
                 SeedFoodItems.Initialize(scope.ServiceProvider);
+                SeedSeats.Initialize(scope.ServiceProvider);
+                SeedOrders.Initialize(scope.ServiceProvider);
                 await SeedRoles.Initialize(scope.ServiceProvider);
                 await SeedUsers.Initialize(scope.ServiceProvider);
                 TheaterSeatGeneration.AddSeatsToExistingTheaters(db);

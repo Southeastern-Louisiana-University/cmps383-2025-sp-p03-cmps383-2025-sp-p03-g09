@@ -95,7 +95,7 @@ const Login: React.FC = () => {
     <>
       <style>{styles}</style>
       <div className="login-container">
-        <h1 className="login-title">Cinema Login</h1>
+        <h1 className="login-title">Lion's Den Login</h1>
         <form onSubmit={handleLogin}>
           <input
             className="input-field"

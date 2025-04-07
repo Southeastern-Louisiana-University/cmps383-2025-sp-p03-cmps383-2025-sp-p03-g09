@@ -200,34 +200,29 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         private bool IsInvalid(OrderDto dto)
-        {
-            if (dto.Price <= 0)
-            {
-                Console.WriteLine("Invalid order: Price must be greater than 0.");
-                return true;
+{
+                if (dto.Price <= 0)
+                {
+                    Console.WriteLine("❌ [LOG] Invalid order: Price must be > 0");
+                    return true;
+                }
+                if (dto.UserId <= 0)
+                {
+                    Console.WriteLine("❌ [LOG] Invalid order: UserId must be > 0");
+                    return true;
+                }
+                if (dto.TheaterId <= 0)
+                {
+                    Console.WriteLine("❌ [LOG] Invalid order: TheaterId must be > 0");
+                    return true;
+                }
+                if (dto.SeatId <= 0)
+                {
+                    Console.WriteLine("❌ [LOG] Invalid order: SeatId must be > 0");
+                    return true;
+                }
+                return false;
             }
-            if (dto.UserId <= 0)
-            {
-                Console.WriteLine("Invalid order: UserId must be greater than 0.");
-                return true;
-            }
-            if (dto.TheaterId <= 0)
-            {
-                Console.WriteLine("Invalid order: TheaterId must be greater than 0.");
-                return true;
-            }
-            if (dto.SeatId <= 0)
-            {
-                Console.WriteLine("Invalid order: SeatId must be greater than 0.");
-                return true;
-            }
-            if (dto.FoodItemIds == null || !dto.FoodItemIds.Any())
-            {
-                Console.WriteLine("Invalid order: FoodItemIds must not be empty.");
-                return true;
-            }
-            return false;
-        }
 
         private static IQueryable<OrderDto> GetOrderDtos(IQueryable<Order> orders)
         {

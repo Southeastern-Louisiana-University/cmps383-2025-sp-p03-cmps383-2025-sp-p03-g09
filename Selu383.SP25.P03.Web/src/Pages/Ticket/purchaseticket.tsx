@@ -33,32 +33,28 @@ const PurchaseTicket: React.FC = () => {
   const locationId = searchParams.get("locationId");
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [ticketQuantity, setTicketQuantity] = useState<number>(1); // New state for ticket quantity
+  const [ticketQuantity, setTicketQuantity] = useState<number>(1);
   const [movieDetails, setMovieDetails] = useState<Movie | null>(null);
   const [locationDetails, setLocationDetails] = useState<Location | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    // Fetch food items
     fetch("/api/fooditems")
       .then((res) => res.json())
       .then(setFoodItems);
 
-    // Fetch movie details
     if (movieId) {
       fetch(`/api/movies/${movieId}`)
         .then((res) => res.json())
         .then(setMovieDetails);
     }
 
-    // Fetch location details
     if (locationId) {
       fetch(`/api/locations/${locationId}`)
         .then((res) => res.json())
         .then(setLocationDetails);
     }
 
-    // Fetch authenticated user details
     fetch("/api/authentication/me", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setUserId(data.id))
@@ -93,55 +89,39 @@ const PurchaseTicket: React.FC = () => {
 
   const handleClearCart = () => {
     setCartItems([]);
-    setTicketQuantity(1); // Reset ticket quantity
+    setTicketQuantity(1);
   };
 
-  const handlePurchase = () => {
-    if (!userId) {
-      alert("User is not authenticated.");
-      return;
-    }
-
-    const ticketTotalPrice = 12.99 * ticketQuantity;
-    const foodTotalPrice = cartItems.reduce(
-      (sum, item) => sum + item.food.price * item.quantity,
-      0
-    );
-    const totalPrice = ticketTotalPrice + foodTotalPrice;
-
-    const payload = {
-      price: totalPrice,
-      userId: userId, // Use the actual userId
-      theaterId: 1,
-      seatId: 1,
-      foodItemIds: cartItems.map((item) => item.food.id),
+  const handleAddToCart = () => {
+    const existing = JSON.parse(localStorage.getItem("cartItems") || "[]");
+  
+    const ticketNameParts = [];
+    if (movieDetails?.title) ticketNameParts.push(movieDetails.title);
+    if (showtime) ticketNameParts.push(`@ ${showtime}`);
+    if (locationDetails?.name) ticketNameParts.push(`(${locationDetails.name})`);
+  
+    const ticketItem = {
+      id: Date.now(),
+      name: ticketNameParts.join(" "),
+      quantity: ticketQuantity,
+      price: 12.99,
     };
-
-    console.log("Sending purchase payload:", payload);
-
-    fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // Ensure cookies are sent for authentication
-      body: JSON.stringify(payload),
-    })
-      .then((res) => {
-        if (res.ok) {
-          alert("Purchase completed successfully!");
-          setCartItems([]);
-          setTicketQuantity(1);
-        } else {
-          return res.json().then((data) => {
-            console.error("Purchase failed:", data);
-            alert("Failed to complete purchase. See console for details.");
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Network error:", err);
-        alert("Failed to complete purchase due to a network error.");
-      });
+  
+    const foodCartItems = cartItems.map(item => ({
+      id: Date.now() + item.food.id,
+      name: item.food.name,
+      quantity: item.quantity,
+      price: item.food.price,
+    }));
+  
+    const allItems = [...existing, ticketItem, ...foodCartItems];
+  
+    localStorage.setItem("cartItems", JSON.stringify(allItems));
+    window.location.href = "/cart";
   };
+  
+  
+  
 
   const ticketTotalPrice = 12.99 * ticketQuantity;
   const foodTotalPrice = cartItems.reduce(
@@ -281,13 +261,9 @@ const PurchaseTicket: React.FC = () => {
       `}</style>
 
       <div className="purchase-container">
-        {/* Cart Section */}
         <div className="cart-section">
           <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
-          <button
-            className="clear-cart-button mb-4"
-            onClick={handleClearCart}
-          >
+          <button className="clear-cart-button mb-4" onClick={handleClearCart}>
             Clear Cart
           </button>
           <div className="bg-gray-900 p-4 rounded mb-6">
@@ -347,20 +323,21 @@ const PurchaseTicket: React.FC = () => {
               ))}
             </div>
           )}
-          <div className="cart-total">
-            Total: ${totalPrice.toFixed(2)}
-          </div>
+          <div className="cart-total">Total: ${totalPrice.toFixed(2)}</div>
           <button
-            className="bg-red-600 text-white px-6 py-3 mt-8 text-lg rounded hover:bg-red-700 transition w-full"
-            onClick={handlePurchase}
-          >
-            Confirm Purchase
-          </button>
+  className="bg-red-600 text-white px-6 py-3 mt-8 text-lg rounded hover:bg-red-700 transition w-full"
+  onClick={handleAddToCart}
+>
+  Add to Cart
+</button>
+
+
         </div>
 
-        {/* Right Food Ads */}
         <div className="food-ads">
-          <h2 className="text-xl font-bold text-center mb-4">Want to add some food?</h2>
+          <h2 className="text-xl font-bold text-center mb-4">
+            Want to add some food?
+          </h2>
           {foodItems.map((food: FoodItem) => (
             <div key={food.id} className="food-item">
               <img

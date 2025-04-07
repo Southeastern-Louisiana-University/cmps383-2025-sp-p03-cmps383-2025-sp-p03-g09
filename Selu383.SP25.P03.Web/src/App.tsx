@@ -9,6 +9,8 @@ import MovieCreate from './Pages/Movie/moviecreate';
 import SelectTicket from './Pages/Ticket/selectticket';
 import PurchaseTicket from './Pages/Ticket/purchaseticket';
 import Cart from './Pages/Cart/cart';
+import PurchaseConfirmation from "./Pages/Purchase/PurchaseConfirmation";
+import PurchaseHistory from "./Pages/Purchase/PurchaseHistory";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path="/movies/:movieId/select-ticket" element={<SelectTicket />} />
         <Route path="/movies/:movieId/purchase" element={<PurchaseTicket />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/purchase/confirmation" element={<PurchaseConfirmation />} />
+        <Route path="/purchase/history" element={<PurchaseHistory />} />
       </Routes>
     </Router>
   );

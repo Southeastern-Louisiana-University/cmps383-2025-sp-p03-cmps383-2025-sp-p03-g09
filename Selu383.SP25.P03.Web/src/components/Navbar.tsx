@@ -25,21 +25,18 @@ const Navbar: React.FC = () => {
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const locationDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load user
   useEffect(() => {
     fetch('/api/authentication/me', { credentials: 'include' })
       .then(res => res.ok ? res.json() : null)
       .then(setUser);
   }, []);
 
-  // Load locations
   useEffect(() => {
     fetch('/api/locations')
       .then(res => res.ok ? res.json() : [])
       .then(setLocations);
   }, []);
 
-  // Load selected location from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('selectedLocation');
     if (stored) {
@@ -47,7 +44,6 @@ const Navbar: React.FC = () => {
     }
   }, []);
 
-  // Handle outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -83,10 +79,8 @@ const Navbar: React.FC = () => {
   return (
     <header className="navbar">
       <div className="navbar-container">
-        {/* Left: Logo */}
         <Link to="/" className="navbar-logo">Lion's Den Cinema</Link>
 
-        {/* Center: Nav Links */}
         <nav className="navbar-links-wrapper">
           <div className="navbar-links">
             <Link to="/" className="nav-link">Home</Link>
@@ -96,14 +90,9 @@ const Navbar: React.FC = () => {
           </div>
         </nav>
 
-        {/* Right: User & Location */}
         <div className="navbar-controls">
-          {/* Cart Link */}
-          <Link to="/cart" className="cart-link">
-            Cart
-          </Link>
+          <Link to="/cart" className="cart-link">Cart</Link>
 
-          {/* Location Dropdown */}
           <div className="location-select" ref={locationDropdownRef}>
             <button
               onClick={() => setShowLocationDropdown(!showLocationDropdown)}
@@ -126,7 +115,6 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* User/Login Dropdown */}
           <div className="navbar-user" ref={userDropdownRef}>
             {user ? (
               <>
@@ -138,7 +126,12 @@ const Navbar: React.FC = () => {
                 </button>
                 {showUserDropdown && (
                   <div className="dropdown">
-                    <button className="dropdown-item" onClick={handleLogout}>Sign Out</button>
+                    <Link to="/purchase/history" className="dropdown-item">
+                      Purchase History
+                    </Link>
+                    <button className="dropdown-item" onClick={handleLogout}>
+                      Sign Out
+                    </button>
                   </div>
                 )}
               </>
@@ -147,7 +140,6 @@ const Navbar: React.FC = () => {
             )}
           </div>
         </div>
-
       </div>
     </header>
   );
