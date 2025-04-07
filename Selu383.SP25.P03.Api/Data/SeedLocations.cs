@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Features.Locations;
+using Selu383.SP25.P03.Api.Features.Tickets;
 
 namespace Selu383.SP25.P03.Api.Data
 {
@@ -9,7 +10,9 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using (var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                // Remove invalid locations (if any exist without a valid ID)
+                context.Tickets.RemoveRange(context.Tickets);
+                context.SaveChanges();
+
                 var invalidLocations = context.Locations.Where(l => l.Id <= 0).ToList();
                 if (invalidLocations.Any())
                 {
@@ -17,14 +20,11 @@ namespace Selu383.SP25.P03.Api.Data
                     context.SaveChanges();
                 }
 
-                // Clear existing locations before reseeding
                 context.Locations.RemoveRange(context.Locations);
                 context.SaveChanges();
 
-                // Reset identity (SQL Server example)
                 context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Locations', RESEED, 0)");
 
-                // Add new locations
                 context.Locations.AddRange(
                     new Location
                     {
@@ -43,7 +43,6 @@ namespace Selu383.SP25.P03.Api.Data
                     }
                 );
 
-                // Save changes to commit the new locations to the database
                 context.SaveChanges();
             }
         }

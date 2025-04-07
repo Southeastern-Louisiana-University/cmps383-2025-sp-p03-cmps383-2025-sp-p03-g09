@@ -105,20 +105,26 @@ const PurchaseTicket: React.FC = () => {
       name: ticketNameParts.join(" "),
       quantity: ticketQuantity,
       price: 12.99,
+      movieId: movieId,
+      locationId: locationId,
+      showtime: showtime
     };
   
-    const foodCartItems = cartItems.map(item => ({
+    const foodCartItems = cartItems.map((item) => ({
       id: Date.now() + item.food.id,
+      foodItemId: item.food.id, 
       name: item.food.name,
       quantity: item.quantity,
       price: item.food.price,
     }));
+    
   
     const allItems = [...existing, ticketItem, ...foodCartItems];
   
     localStorage.setItem("cartItems", JSON.stringify(allItems));
     window.location.href = "/cart";
   };
+  
   
   
   

@@ -4,19 +4,25 @@ import Navbar from "../../components/Navbar";
 interface Order {
   id: number;
   price: number;
+  userId: number;
   seatId: number;
   theaterId: number;
-  foodItemIds: number[];
-  tickets?: {
-    movieTitle: string;
-    locationName: string;
+  purchaseTime: string;
+  ticket?: {
+    id: number;
     showtime: string;
-  }[];
+    movie?: {
+      title: string;
+    };
+    location?: {
+      name: string;
+    };
+  };
   foodItems?: {
     name: string;
     price: number;
+    quantity: number;
   }[];
-  createdAt?: string;
 }
 
 const PurchaseHistory: React.FC = () => {
@@ -26,120 +32,118 @@ const PurchaseHistory: React.FC = () => {
     fetch("/api/orders/user", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
-        setOrders(data);
-      })
-      .catch((err) => {
-        console.error("Failed to load purchase history:", err);
+        const enriched = data.map((order: any) => {
+          // attempt to rebuild food item info if it exists
+          const savedConfirm = JSON.parse(
+            localStorage.getItem("lastConfirmedOrder") || "{}"
+          );
+
+          const foodItems =
+            savedConfirm && Array.isArray(savedConfirm.foodItems)
+              ? savedConfirm.foodItems
+              : [];
+
+          return {
+            ...order,
+            foodItems,
+          };
+        });
+
+        console.log("🧾 Enriched purchase history:", enriched);
+        setOrders(enriched);
       });
   }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
+
       <style>{`
         .history-container {
+          max-width: 700px;
+          margin: 0 auto;
+          padding: 2rem;
           display: flex;
-          justify-content: center;
+          flex-direction: column;
           align-items: center;
-          padding-top: 3rem;
         }
 
         .history-box {
           background-color: #1f1f1f;
-          padding: 2rem 3rem;
-          border-radius: 12px;
-          max-width: 700px;
+          padding: 2rem;
+          border-radius: 8px;
           width: 100%;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-        }
-
-        .history-box h1 {
-          font-size: 2rem;
-          font-weight: bold;
-          text-align: center;
-          margin-bottom: 2rem;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .order-item {
-          margin-bottom: 2rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #444;
+          background-color: #2a2a2a;
+          padding: 1rem;
+          border-radius: 6px;
+          margin-bottom: 1.5rem;
         }
 
-        .order-detail {
+        .order-item h2 {
+          font-size: 1.25rem;
+          font-weight: bold;
           margin-bottom: 0.5rem;
         }
 
-        .food-list {
-          list-style: none;
-          padding-left: 0;
-        }
-
-        .food-list li {
+        .order-detail {
           margin-bottom: 0.25rem;
         }
 
-        .empty-message {
-          text-align: center;
-          color: #aaa;
+        .order-total {
+          margin-top: 0.5rem;
+          font-weight: bold;
         }
       `}</style>
 
       <div className="history-container">
         <div className="history-box">
-          <h1>Purchase History</h1>
+          <h1 className="text-3xl font-bold text-center mb-6">Purchase History</h1>
+
           {orders.length === 0 ? (
-            <p className="empty-message">You haven't purchased anything yet.</p>
+            <p className="text-center">You have no past orders.</p>
           ) : (
             orders.map((order) => (
-              <div className="order-item" key={order.id}>
-                <div className="order-detail">
-                  <strong>Movie:</strong>{" "}
-                  {order.tickets && order.tickets.length > 0
-                    ? order.tickets[0].movieTitle
-                    : "N/A"}
-                </div>
-                <div className="order-detail">
+              <div key={order.id} className="order-item">
+                <h2>Movie: {order.ticket?.movie?.title || "N/A"}</h2>
+                <p className="order-detail">
                   <strong>Location:</strong>{" "}
-                  {order.tickets && order.tickets.length > 0
-                    ? order.tickets[0].locationName
-                    : "N/A"}
-                </div>
-                <div className="order-detail">
-                  <strong>Showtime:</strong>{" "}
-                  {order.tickets && order.tickets.length > 0
-                    ? new Date(order.tickets[0].showtime).toLocaleString()
-                    : "N/A"}
-                </div>
-                <div className="order-detail">
+                  {order.ticket?.location?.name || "N/A"}
+                </p>
+                <p className="order-detail">
+                  <strong>Showtime:</strong> {order.ticket?.showtime || "N/A"}
+                </p>
+                <p className="order-detail">
                   <strong>Seat:</strong> {order.seatId}
-                </div>
-                <div className="order-detail">
+                </p>
+                <p className="order-detail">
                   <strong>Theater:</strong> {order.theaterId}
-                </div>
-                <div className="order-detail">
-                  <strong>Food Items:</strong>
-                  {order.foodItems && order.foodItems.length > 0 ? (
-                    <ul className="food-list">
-                      {order.foodItems.map((item, index) => (
-                        <li key={index}>
-                          {item.name} - ${item.price.toFixed(2)}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    " None"
-                  )}
-                </div>
-                <div className="order-detail">
+                </p>
+                <p className="order-detail">
+                  <strong>Food Items:</strong>{" "}
+                  {order.foodItems && order.foodItems.length > 0
+                    ? order.foodItems
+                        .map(
+                          (item) =>
+                            `${item.name} x${item.quantity} ($${(
+                              item.price * item.quantity
+                            ).toFixed(2)})`
+                        )
+                        .join(", ")
+                    : "None"}
+                </p>
+                <p className="order-detail">
                   <strong>Purchase Time:</strong>{" "}
-                  {order.createdAt
-                    ? new Date(order.createdAt).toLocaleString()
+                  {order.purchaseTime
+                    ? new Date(order.purchaseTime).toLocaleString()
                     : "N/A"}
-                </div>
-                <div className="order-detail">
-                  <strong>Total:</strong> ${order.price.toFixed(2)}
-                </div>
+                </p>
+                <p className="order-total">
+                  Total: ${order.price.toFixed(2)}
+                </p>
               </div>
             ))
           )}

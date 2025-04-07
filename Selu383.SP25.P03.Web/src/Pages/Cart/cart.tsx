@@ -6,28 +6,45 @@ interface CartItem {
   name: string;
   quantity: number;
   price: number;
+  seatId?: number;
+  theaterId?: number;
+  movieId?: number;
+  locationId?: number;
+  showtime?: string;
+  food?: {
+    id: number;
+    name: string;
+    price: number;
+  };
 }
+
 
 const CartPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
     const storedItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
     setCartItems(storedItems);
     calculateTotal(storedItems);
+
+    fetch("/api/authentication/me", { credentials: "include" })
+      .then((res) => res.json())
+      .then((user) => setUserId(user.id))
+      .catch((err) => console.error("❌ Failed to get user ID", err));
   }, []);
 
   const calculateTotal = (items: CartItem[]) => {
-    let total = 0;
-    items.forEach(item => {
-      total += item.price * item.quantity;
-    });
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     setTotalPrice(total);
   };
 
   const handleRemoveItem = (id: number) => {
-    const updatedItems = cartItems.filter(item => item.id !== id);
+    const updatedItems = cartItems.filter((item) => item.id !== id);
     setCartItems(updatedItems);
     localStorage.setItem("cartItems", JSON.stringify(updatedItems));
     calculateTotal(updatedItems);
@@ -44,7 +61,6 @@ const CartPage: React.FC = () => {
     const match = name.match(/@ (.*?)\s?\(/);
     return match ? match[1] : "Unknown";
   };
-  
 
   const handleConfirmPurchase = () => {
     if (cartItems.length === 0) {
@@ -52,29 +68,31 @@ const CartPage: React.FC = () => {
       return;
     }
   
-    console.log("🧨 Submitting order(s)...", cartItems);
-  
-    // Assume the first item is always the ticket
-    const ticketItem = cartItems[0];
-  
-  
-    if (!ticketItem) {
-      alert("No ticket found in cart. Purchase failed.");
+    if (!userId) {
+      alert("User not authenticated.");
       return;
     }
   
-    const foodItems = cartItems
-      .filter((item) => item !== ticketItem)
-      .map((item) => `${item.name} x${item.quantity}`);
+    console.log("🧨 Submitting order(s)...", cartItems);
   
-    const ticketTotal = ticketItem.price * ticketItem.quantity;
+    const ticketItem = cartItems.find((item) => !item.food);
+    if (!ticketItem) {
+      alert("No ticket found in cart.");
+      return;
+    }
+  
+    // ✅ Build payload with repeated food IDs
+    const foodItemIds = cartItems
+      .filter((item) => item.food)
+      .flatMap((item) => Array(item.quantity).fill(item.food!.id));
   
     const payload = {
-      price: ticketTotal,
-      userId: 1, // Use real user ID here
-      theaterId: 1,
-      seatId: 1,
-      foodItemIds: [],
+      foodItemIds,
+      price: totalPrice,
+      userId,
+      movieId: Number(ticketItem.movieId),
+      locationId: 1,
+      showtime: ticketItem.showtime!,
     };
   
     console.log("📦 Payload:", payload);
@@ -92,16 +110,19 @@ const CartPage: React.FC = () => {
         const confirmationData = {
           movieTitle: ticketItem.name,
           showtime: extractShowtime(ticketItem.name),
-          theaterId: payload.theaterId,
-          seatId: payload.seatId,
-          foodItems,
-          totalPrice: ticketTotal,
+          theaterId: ticketItem.theaterId,
+          seatId: ticketItem.seatId,
+          foodItems: cartItems
+            .filter((item) => item.food)
+            .map((item) => ({
+              name: item.food!.name,
+              price: item.food!.price,
+              quantity: item.quantity,
+            })),
+          totalPrice,
         };
   
-        localStorage.setItem(
-          "lastConfirmedOrder",
-          JSON.stringify(confirmationData)
-        );
+        localStorage.setItem("lastConfirmedOrder", JSON.stringify(confirmationData));
         localStorage.removeItem("cartItems");
   
         window.location.href = "/purchase/confirmation";
@@ -111,7 +132,6 @@ const CartPage: React.FC = () => {
         alert("Error confirming purchase.");
       });
   };
-  
   
   
 
@@ -215,7 +235,9 @@ const CartPage: React.FC = () => {
               {cartItems.map((item) => (
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-details">
-                    <span>{item.name} x {item.quantity}</span>
+                    <span>
+                      {item.name} x {item.quantity}
+                    </span>
                     <span>${(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                   <button

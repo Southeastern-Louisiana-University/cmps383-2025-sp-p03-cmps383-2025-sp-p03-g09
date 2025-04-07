@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
+
+interface FoodItem {
+  name: string;
+  price: number;
+  quantity: number;
+}
 
 const PurchaseConfirmation: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +29,7 @@ const PurchaseConfirmation: React.FC = () => {
     theaterId,
     seatId,
     foodItems,
-    totalPrice
+    totalPrice,
   } = confirmationData;
 
   return (
@@ -34,7 +40,7 @@ const PurchaseConfirmation: React.FC = () => {
           display: flex;
           justify-content: center;
           align-items: center;
-          height: calc(100vh - 80px); /* adjust for navbar height */
+          height: calc(100vh - 80px);
           padding: 2rem;
         }
 
@@ -96,8 +102,11 @@ const PurchaseConfirmation: React.FC = () => {
             <div>
               <strong>🍿 Food:</strong>
               <ul className="food-list">
-                {foodItems.map((item: string, i: number) => (
-                  <li key={i}>{item}</li>
+                {foodItems.map((item: FoodItem, i: number) => (
+                  <li key={i}>
+                    {item.name} x{item.quantity} – $
+                    {(item.price * item.quantity).toFixed(2)}
+                  </li>
                 ))}
               </ul>
             </div>
