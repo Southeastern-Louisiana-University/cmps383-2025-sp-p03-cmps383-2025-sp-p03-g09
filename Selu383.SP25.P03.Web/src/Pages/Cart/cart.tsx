@@ -113,12 +113,13 @@ const CartPage: React.FC = () => {
           theaterId: ticketItem.theaterId,
           seatId: ticketItem.seatId,
           foodItems: cartItems
-            .filter((item) => item.food)
-            .map((item) => ({
-              name: item.food!.name,
-              price: item.food!.price,
-              quantity: item.quantity,
-            })),
+  .filter((item) => item.food) // only food items
+  .map((item) => ({
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+  })),
+
           totalPrice,
         };
   

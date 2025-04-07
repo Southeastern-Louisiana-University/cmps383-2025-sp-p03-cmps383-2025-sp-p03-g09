@@ -105,25 +105,32 @@ const PurchaseTicket: React.FC = () => {
       name: ticketNameParts.join(" "),
       quantity: ticketQuantity,
       price: 12.99,
-      movieId: movieId,
-      locationId: locationId,
-      showtime: showtime
+      movieId: movieDetails?.id,
+      locationId: locationDetails?.id,
+      showtime,
+      seatId: undefined,
+      theaterId: undefined,
     };
   
     const foodCartItems = cartItems.map((item) => ({
       id: Date.now() + item.food.id,
-      foodItemId: item.food.id, 
       name: item.food.name,
       quantity: item.quantity,
       price: item.food.price,
+      seatId: undefined,
+      theaterId: undefined,
+      movieId: undefined,
+      locationId: undefined,
+      showtime: undefined,
+      food: item.food, // ✅ THIS is the critical part
     }));
-    
   
-    const allItems = [...existing, ticketItem, ...foodCartItems];
+    const allItems = [ticketItem, ...existing, ...foodCartItems];
   
     localStorage.setItem("cartItems", JSON.stringify(allItems));
     window.location.href = "/cart";
   };
+  
   
   
   
