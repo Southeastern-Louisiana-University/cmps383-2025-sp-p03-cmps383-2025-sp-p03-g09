@@ -116,7 +116,7 @@ export default function HomeScreen() {
 
   return (
           <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#10b981', dark: '#0d9268' }}
       headerImage={
         <ThemedView style={styles.headerContent}>
           <Image
@@ -126,11 +126,11 @@ export default function HomeScreen() {
           <TouchableOpacity 
             style={styles.locationSelector}
           >
-            <IconSymbol name="location.fill" size={16} color="#A1CEDC" />
+            <IconSymbol name="location.fill" size={16} color="#10b981" />
             <ThemedText numberOfLines={1} style={styles.locationText}>
               {selectedTheater}
             </ThemedText>
-            <IconSymbol name="chevron.down" size={16} color="#A1CEDC" />
+            <IconSymbol name="chevron.down" size={16} color="#10b981" />
           </TouchableOpacity>
         </ThemedView>
       }>
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     marginHorizontal: 6,
-    color: '#333',
+    color: '#10b981',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   watchButton: {
     flexDirection: 'row',
-    backgroundColor: '#A1CEDC',
+    backgroundColor: '#10b981',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   seeAllText: {
-    color: '#A1CEDC',
+    color: '#10b981',
   },
   movieList: {
     paddingLeft: 16,
