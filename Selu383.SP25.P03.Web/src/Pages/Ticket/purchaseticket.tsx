@@ -97,7 +97,6 @@ const PurchaseTicket: React.FC = () => {
   
     const ticketNameParts = [];
     if (movieDetails?.title) ticketNameParts.push(movieDetails.title);
-    if (showtime) ticketNameParts.push(`@ ${showtime}`);
     if (locationDetails?.name) ticketNameParts.push(`(${locationDetails.name})`);
   
     const ticketItem = {

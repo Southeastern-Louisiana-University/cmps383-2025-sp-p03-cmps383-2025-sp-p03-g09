@@ -149,7 +149,12 @@ var order = new Order
             context.Orders.Add(order);
             await context.SaveChangesAsync();
 
-            return Ok(new { order.Id });
+            return Ok(new
+{
+    order.Id,
+    seatId = order.SeatId,
+    theaterId = order.TheaterId
+});
         }
     }
 }

@@ -91,16 +91,16 @@ const PurchaseConfirmation: React.FC = () => {
 
       <div className="confirmation-wrapper">
         <div className="confirmation-box">
-          <h1>🎉 Purchase Confirmed!</h1>
+          <h1>Purchase Confirmed!</h1>
 
-          <p><strong>🎬 Movie:</strong> {movieTitle}</p>
-          <p><strong>🕒 Showtime:</strong> {showtime}</p>
-          <p><strong>🏛️ Theater:</strong> {theaterId}</p>
-          <p><strong>🪑 Seat Assigned:</strong> {seatId}</p>
+          <p><strong>Movie:</strong> {movieTitle}</p>
+          <p><strong>Showtime:</strong> {showtime}</p>
+          <p><strong>Theater:</strong> {theaterId}</p>
+          <p><strong>Seat Assigned:</strong> {seatId}</p>
 
           {foodItems && foodItems.length > 0 && (
             <div>
-              <strong>🍿 Food:</strong>
+              <strong>Food:</strong>
               <ul className="food-list">
                 {foodItems.map((item: FoodItem, i: number) => (
                   <li key={i}>
@@ -112,7 +112,7 @@ const PurchaseConfirmation: React.FC = () => {
             </div>
           )}
 
-          <p><strong>💰 Total Paid:</strong> ${totalPrice.toFixed(2)}</p>
+          <p><strong>Total Paid:</strong> ${totalPrice.toFixed(2)}</p>
 
           <button onClick={() => navigate("/")} className="back-button">
             Back to Home

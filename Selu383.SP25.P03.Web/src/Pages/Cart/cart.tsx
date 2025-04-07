@@ -81,7 +81,6 @@ const CartPage: React.FC = () => {
       return;
     }
   
-    // ✅ Build payload with repeated food IDs
     const foodItemIds = cartItems
       .filter((item) => item.food)
       .flatMap((item) => Array(item.quantity).fill(item.food!.id));
@@ -105,21 +104,23 @@ const CartPage: React.FC = () => {
     })
       .then((res) => {
         if (!res.ok) throw new Error("Order failed");
+        return res.json(); // 🔥 important: grab returned seatId + theaterId
+      })
+      .then((data) => {
         console.log("✅ Order placed successfully");
   
         const confirmationData = {
           movieTitle: ticketItem.name,
-          showtime: extractShowtime(ticketItem.name),
-          theaterId: ticketItem.theaterId,
-          seatId: ticketItem.seatId,
+          showtime: ticketItem.showtime,
+          theaterId: data.theaterId,
+          seatId: data.seatId,
           foodItems: cartItems
-  .filter((item) => item.food) // only food items
-  .map((item) => ({
-    name: item.name,
-    price: item.price,
-    quantity: item.quantity,
-  })),
-
+            .filter((item) => item.food)
+            .map((item) => ({
+              name: item.food!.name,
+              price: item.food!.price,
+              quantity: item.quantity,
+            })),
           totalPrice,
         };
   
@@ -133,6 +134,7 @@ const CartPage: React.FC = () => {
         alert("Error confirming purchase.");
       });
   };
+  
   
   
 
