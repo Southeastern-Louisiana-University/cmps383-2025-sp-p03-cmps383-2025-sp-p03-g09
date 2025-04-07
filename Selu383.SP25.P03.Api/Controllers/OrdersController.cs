@@ -44,6 +44,12 @@ public async Task<ActionResult<IEnumerable<object>>> GetOrdersForUser()
         .Include(u => u.Orders)
             .ThenInclude(o => o.OrderFoodItems)
                 .ThenInclude(of => of.FoodItem)
+        .Include(u => u.Orders)
+            .ThenInclude(o => o.Ticket)
+                .ThenInclude(t => t.Movie)
+        .Include(u => u.Orders)
+            .ThenInclude(o => o.Ticket)
+                .ThenInclude(t => t.Location)
         .FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
 
     if (user == null)
@@ -60,11 +66,25 @@ public async Task<ActionResult<IEnumerable<object>>> GetOrdersForUser()
         o.SeatId,
         o.TicketId,
         o.PurchaseTime,
-        FoodItems = o.OrderFoodItems.Select(of => new {
+        Ticket = o.Ticket == null ? null : new
+        {
+            o.Ticket.Id,
+            o.Ticket.Showtime,
+            Movie = o.Ticket.Movie == null ? null : new
+            {
+                o.Ticket.Movie.Title
+            },
+            Location = o.Ticket.Location == null ? null : new
+            {
+                o.Ticket.Location.Name
+            }
+        },
+        FoodItems = o.OrderFoodItems.Select(of => new
+        {
             of.FoodItemId,
             of.FoodItem.Name,
             of.FoodItem.Price,
-            Quantity = 1 // We'll update quantity tracking next if needed
+            Quantity = 1
         }).ToList()
     }).ToList();
 

@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 
+interface FoodItem {
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 interface Order {
   id: number;
   price: number;
@@ -18,11 +24,7 @@ interface Order {
       name: string;
     };
   };
-  foodItems?: {
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
+  foodItems?: FoodItem[];
 }
 
 const PurchaseHistory: React.FC = () => {
@@ -32,25 +34,19 @@ const PurchaseHistory: React.FC = () => {
     fetch("/api/orders/user", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
-        const enriched = data.map((order: any) => {
-          // attempt to rebuild food item info if it exists
-          const savedConfirm = JSON.parse(
-            localStorage.getItem("lastConfirmedOrder") || "{}"
-          );
+        console.log("🧾 Purchase history data:", data);
 
-          const foodItems =
-            savedConfirm && Array.isArray(savedConfirm.foodItems)
-              ? savedConfirm.foodItems
-              : [];
+        // Fix food items if they're nested under a shared reference
+        const fixed = data.map((order: any) => ({
+          ...order,
+          foodItems: order.foodItems?.map((item: any) => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity || 1,
+          })) || [],
+        }));
 
-          return {
-            ...order,
-            foodItems,
-          };
-        });
-
-        console.log("🧾 Enriched purchase history:", enriched);
-        setOrders(enriched);
+        setOrders(fixed);
       });
   }, []);
 
@@ -97,6 +93,12 @@ const PurchaseHistory: React.FC = () => {
           margin-top: 0.5rem;
           font-weight: bold;
         }
+
+        .food-list {
+          list-style: disc;
+          margin-left: 1.5rem;
+          margin-top: 0.5rem;
+        }
       `}</style>
 
       <div className="history-container">
@@ -110,8 +112,7 @@ const PurchaseHistory: React.FC = () => {
               <div key={order.id} className="order-item">
                 <h2>Movie: {order.ticket?.movie?.title || "N/A"}</h2>
                 <p className="order-detail">
-                  <strong>Location:</strong>{" "}
-                  {order.ticket?.location?.name || "N/A"}
+                  <strong>Location:</strong> {order.ticket?.location?.name || "N/A"}
                 </p>
                 <p className="order-detail">
                   <strong>Showtime:</strong> {order.ticket?.showtime || "N/A"}
@@ -123,17 +124,20 @@ const PurchaseHistory: React.FC = () => {
                   <strong>Theater:</strong> {order.theaterId}
                 </p>
                 <p className="order-detail">
-                  <strong>Food Items:</strong>{" "}
-                  {order.foodItems && order.foodItems.length > 0
-                    ? order.foodItems
-                        .map(
-                          (item) =>
-                            `${item.name} x${item.quantity} ($${(
-                              item.price * item.quantity
-                            ).toFixed(2)})`
-                        )
-                        .join(", ")
-                    : "None"}
+                  <strong>Food Items:</strong>
+                  {order.foodItems && order.foodItems.length > 0 ? (
+                    <ul className="food-list">
+                      {order.foodItems.map((item, i) => (
+                        <li key={i}>
+                          {item.name} x{item.quantity} – ${(
+                            item.price * item.quantity
+                          ).toFixed(2)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    " None"
+                  )}
                 </p>
                 <p className="order-detail">
                   <strong>Purchase Time:</strong>{" "}
