@@ -90,6 +90,14 @@ const styles = `
     margin-right: 4px;
   }
 
+  .youtube-trailer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 2rem 0;
+  }
+
   .youtube-trailer {
     margin-top: 2rem;
     width: 100%;
@@ -174,7 +182,7 @@ const MovieDetail: React.FC = () => {
               </div>
 
               {movie.youtubeUrl && (
-                <div className="flex justify-center px-4 pb-10">
+                <div className="youtube-trailer-container">
                   <iframe
                     className="youtube-trailer"
                     src={convertToEmbedUrl(movie.youtubeUrl)}
