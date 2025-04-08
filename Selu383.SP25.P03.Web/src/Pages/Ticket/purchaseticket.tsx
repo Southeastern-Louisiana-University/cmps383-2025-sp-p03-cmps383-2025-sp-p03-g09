@@ -36,7 +36,6 @@ const PurchaseTicket: React.FC = () => {
   const [ticketQuantity, setTicketQuantity] = useState<number>(1);
   const [movieDetails, setMovieDetails] = useState<Movie | null>(null);
   const [locationDetails, setLocationDetails] = useState<Location | null>(null);
-  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/fooditems")
@@ -57,7 +56,6 @@ const PurchaseTicket: React.FC = () => {
 
     fetch("/api/authentication/me", { credentials: "include" })
       .then((res) => res.json())
-      .then((data) => setUserId(data.id))
       .catch((err) => console.error("Failed to fetch user details:", err));
   }, [movieId, locationId]);
 

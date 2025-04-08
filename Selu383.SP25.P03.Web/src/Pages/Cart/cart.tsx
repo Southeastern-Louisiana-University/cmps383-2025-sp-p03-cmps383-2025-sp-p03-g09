@@ -56,11 +56,6 @@ const CartPage: React.FC = () => {
     localStorage.removeItem("cartItems");
   };
 
-  const extractShowtime = (name?: string) => {
-    if (!name) return "Unknown";
-    const match = name.match(/@ (.*?)\s?\(/);
-    return match ? match[1] : "Unknown";
-  };
 
   const handleConfirmPurchase = () => {
     if (cartItems.length === 0) {
