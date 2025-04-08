@@ -12,8 +12,8 @@ using Selu383.SP25.P03.Api.Data;
 namespace Selu383.SP25.P03.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250407202705_PurchaseTime")]
-    partial class PurchaseTime
+    [Migration("20250408155612_CorrectPurchaseTime")]
+    partial class CorrectPurchaseTime
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
