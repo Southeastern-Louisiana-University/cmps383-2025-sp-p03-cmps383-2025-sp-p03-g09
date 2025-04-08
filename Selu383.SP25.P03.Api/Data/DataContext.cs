@@ -104,7 +104,16 @@ namespace Selu383.SP25.P03.Api.Data
                 .WithMany(s => s.Orders)
                 .HasForeignKey(o => o.SeatId)
                 .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+                builder.Entity<Order>()
+                .HasOne(o => o.Ticket)
+                .WithMany()
+                .HasForeignKey(o => o.TicketId)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+
+
 
             builder.Entity<OrderFoodItem>().HasKey(ofi => new { ofi.OrderId, ofi.FoodItemId });
 

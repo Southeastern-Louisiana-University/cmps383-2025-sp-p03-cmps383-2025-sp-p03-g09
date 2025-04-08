@@ -10,124 +10,60 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using (var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                // Delete all existing theaters first
-                context.Theaters.RemoveRange(context.Theaters);
+                // Ensure Locations are already seeded
+                var downtown = context.Locations.FirstOrDefault(l => l.Name.Contains("New York"));
+                var uptown = context.Locations.FirstOrDefault(l => l.Name.Contains("New Orleans"));
 
-                // Reset the identity column to start from 1 (or the appropriate starting point)
-                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Theaters', RESEED, 0)");
-
-                // Fetch all locations
-                var locations = context.Locations.ToList();
-                if (!locations.Any())
+                // If locations are missing, throw an exception
+                if (downtown == null || uptown == null)
                 {
-                    throw new InvalidOperationException("No locations found to associate with theaters.");
+                    throw new InvalidOperationException("Required locations are missing. Ensure SeedLocations.Initialize is called first.");
                 }
 
-                // Find specific locations
-                var newyork = locations.FirstOrDefault(l => l.Name.Contains("New York"));
-                var neworleans = locations.FirstOrDefault(l => l.Name.Contains("New Orleans"));
-                var losangeles = locations.FirstOrDefault(l => l.Name.Contains("Los Angeles"));
+                // Remove invalid theaters (those with invalid LocationId)
+                var invalidTheaters = context.Theaters.Where(t => !context.Locations.Any(l => l.Id == t.LocationId)).ToList();
+                if (invalidTheaters.Any())
+                {
+                    context.Theaters.RemoveRange(invalidTheaters);
+                    context.SaveChanges();
+                }
 
-                // Seed new theaters, associating the Location directly to the Theater
+                // Clear existing theaters before reseeding
+                context.Theaters.RemoveRange(context.Theaters);
+                context.SaveChanges();
+
+                // Reset identity (SQL Server example)
+                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Theaters', RESEED, 0)");
+
+                // Add new theaters connected to the correct Location Ids
                 context.Theaters.AddRange(
-                    // New York Theaters
                     new Theater
                     {
                         TheaterNumber = 1,
-                        SeatCount = 300,
-                        Location = newyork
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 2,
-                        SeatCount = 300,
-                        Location = newyork
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 3,
-                        SeatCount = 300,
-                        Location = newyork
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 4,
-                        SeatCount = 300,
-                        Location = newyork
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 5,
-                        SeatCount = 300,
-                        Location = newyork
-                    },
-
-                    // New Orleans Theaters
-                    new Theater
-                    {
-                        TheaterNumber = 1,
-                        SeatCount = 200,
-                        Location = neworleans
+                        SeatCount = 150,
+                        LocationId = downtown.Id
                     },
                     new Theater
                     {
                         TheaterNumber = 2,
                         SeatCount = 200,
-                        Location = neworleans
+                        LocationId = uptown.Id
                     },
                     new Theater
                     {
                         TheaterNumber = 3,
-                        SeatCount = 200,
-                        Location = neworleans
+                        SeatCount = 300,
+                        LocationId = downtown.Id
                     },
                     new Theater
                     {
                         TheaterNumber = 4,
-                        SeatCount = 200,
-                        Location = neworleans
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 5,
-                        SeatCount = 200,
-                        Location = neworleans
-                    },
-                    // Los Angeles Theaters
-                    new Theater
-                    {
-                        TheaterNumber = 1,
-                        SeatCount = 250,
-                        Location = losangeles
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 2,
-                        SeatCount = 250,
-                        Location = losangeles
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 3,
-                        SeatCount = 250,
-                        Location = losangeles
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 4,
-                        SeatCount = 250,
-                        Location = losangeles
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 5,
-                        SeatCount = 250,
-                        Location = losangeles
+                        SeatCount = 75,
+                        LocationId = uptown.Id
                     }
-
-
                 );
 
+                // Save changes to commit the new theaters to the database
                 context.SaveChanges();
             }
         }

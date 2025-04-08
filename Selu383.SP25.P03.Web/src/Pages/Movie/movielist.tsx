@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import { useNavigate } from 'react-router-dom';
 
-// Movie interfaces
 interface Movie {
   id: number;
   title: string;
@@ -14,10 +13,16 @@ interface Movie {
   youtubeUrl: string;
 }
 
+interface UserDto {
+  id: string;
+  userName: string;
+  roles: string[];
+}
+
 const styles = `
   :root {
     --primary-color: #000000;
-    --accent-color: #ff0000;
+    --accent-color: #10b981;
     --text-light: #ffffff;
     --text-dark: #121212;
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -46,16 +51,17 @@ const styles = `
   .ticket-button {
     background-color: var(--accent-color);
     color: var(--text-light);
-    padding: 12px 24px;
+    padding: 8px 20px;
     border-radius: 4px;
     font-weight: bold;
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
+    margin-right: 8px;
   }
 
   .ticket-button:hover {
-    background-color: #cc0000;
+    background-color: #10b981;
     transform: translateY(-2px);
   }
 
@@ -139,21 +145,137 @@ const styles = `
       height: auto;
     }
   }
+
+  .create-button {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .create-button:hover {
+    background-color: #10b981;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+
+  .edit-button {
+    background-color: #555;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .edit-button:hover {
+    background-color: #777;
+  }
+
+  .delete-button {
+    background-color: #990000;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .delete-button:hover {
+    background-color: #cc0000;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background-color: #1e1e1e;
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+  }
+
+  .modal-buttons {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .modal-buttons button {
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .modal-buttons .confirm {
+    background-color: #ff0000;
+    color: white;
+    border: none;
+  }
+
+  .modal-buttons .cancel {
+    background-color: #333;
+    color: white;
+    border: none;
+  }
 `;
 
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [user, setUser] = useState<UserDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+
   const navigate = useNavigate();
+  const isAdmin = user?.roles.includes('Admin');
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/authentication/me', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user info');
+      }
+    };
+
     const fetchMovies = async () => {
       try {
         const response = await fetch('/api/movies');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         setMovies(data);
       } catch (err) {
@@ -164,18 +286,50 @@ const MovieList: React.FC = () => {
       }
     };
 
+    fetchUser();
     fetchMovies();
   }, []);
+
+  const confirmDelete = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmedDelete = async () => {
+    if (!selectedMovie) return;
+    try {
+      const res = await fetch(`/api/movies/${selectedMovie.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        setMovies((prev) => prev.filter((m) => m.id !== selectedMovie.id));
+        setShowConfirmModal(false);
+        setSelectedMovie(null);
+      } else {
+        alert('Failed to delete movie.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while deleting.');
+    }
+  };
 
   return (
     <>
       <style>{styles}</style>
-
       <div className="min-h-screen bg-black text-white w-full">
         <Navbar />
         <main className="py-16">
           <section className="movies-container">
-            <h2 className="text-3xl font-bold text-white text-center mb-8">Now Showing</h2>
+            <div className="top-bar">
+              <h2 className="text-3xl font-bold text-white">Now Showing</h2>
+              {isAdmin && (
+                <button className="create-button" onClick={() => navigate('/movies/create')}>
+                  + Add Movie
+                </button>
+              )}
+            </div>
 
             {loading && <p className="text-center text-gray-400">Loading...</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
@@ -193,18 +347,51 @@ const MovieList: React.FC = () => {
                     <span>Runtime: {movie.duration} mins</span> • <span>Rating: {movie.rating}</span>
                   </div>
                   <p className="text-gray-300 mb-4">{movie.description}</p>
-                  <button
-                    className="ticket-button w-max"
-                    onClick={() => navigate(`/movies/${movie.id}`)}
-                  >
-                    Select Showtimes
-                  </button>
+
+                  <div className="flex flex-col gap-2 mt-2">
+                  <span className="text-white font-medium">Select showtime:</span>
+                    <div className="flex gap-4">
+                      {["12:00PM", "3:00PM", "6:00PM", "9:00PM"].map((time) => (
+                        <button
+                          key={time}
+                          className="ticket-button"
+                          onClick={() => navigate(`/movies/${movie.id}/purchase?showtime=${time}`)}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+
+                    {isAdmin && (
+                      <div className="admin-buttons">
+                        <button className="edit-button" onClick={() => navigate(`/movies/${movie.id}/edit`)}>
+                          Modify
+                        </button>
+                        <button className="delete-button" onClick={() => confirmDelete(movie)}>
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </section>
         </main>
       </div>
+
+      {showConfirmModal && selectedMovie && (
+        <div className="modal-backdrop">
+          <div className="modal-content">
+            <h3>Delete "{selectedMovie.title}"?</h3>
+            <p>This action cannot be undone.</p>
+            <div className="modal-buttons">
+              <button className="confirm" onClick={handleConfirmedDelete}>Confirm</button>
+              <button className="cancel" onClick={() => setShowConfirmModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
