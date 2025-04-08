@@ -195,11 +195,11 @@ const PurchaseTicket: React.FC = () => {
 
         .food-price {
           font-size: 0.9rem;
-          color: #e3342f;
+          color: #10b981;
         }
 
         .add-button {
-          background-color: #e3342f;
+          background-color: #10b981;
           color: white;
           padding: 0.3rem 0.6rem;
           font-size: 0.8rem;
@@ -209,7 +209,7 @@ const PurchaseTicket: React.FC = () => {
         }
 
         .add-button:hover {
-          background-color: #cc0000;
+          background-color: #10b981;
         }
 
         .cart-section {

@@ -27,7 +27,7 @@
 .navbar-logo {
   font-size: 2rem;
   font-weight: bold;
-  color: #e3342f;
+  color: #10b981;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
   text-decoration: none;
 }
@@ -69,7 +69,7 @@
 
 .nav-link:hover,
 .cart-link:hover {
-  color: #e3342f;
+  color: #10b981;
 }
 
 .navbar-controls {
@@ -96,7 +96,7 @@
 
 .user-button:hover,
 .login-button:hover {
-  color: #e3342f;
+  color: #10b981;
 }
 
 .location-select {
@@ -140,7 +140,7 @@
 
 .dropdown-item:hover {
   background-color: #333;
-  color: #ff5555;
+  color: #10b981;
 }
 
 .dropdown .dropdown-item:first-child {

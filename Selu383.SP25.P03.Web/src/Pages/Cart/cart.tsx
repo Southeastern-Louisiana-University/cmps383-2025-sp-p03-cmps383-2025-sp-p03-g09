@@ -153,6 +153,9 @@ const CartPage: React.FC = () => {
           flex-direction: column;
           align-items: center;
         }
+          .cart-item-details span {
+            color: #10b981;
+        }
 
         .cart-box {
           background-color: #1f1f1f;
@@ -179,13 +182,13 @@ const CartPage: React.FC = () => {
         }
 
         .remove-button {
-          color: #e3342f;
+          color: #10b981;
           cursor: pointer;
           text-decoration: underline;
         }
 
         .remove-button:hover {
-          color: #cc0000;
+          color: #10b981;
         }
 
         .cart-total {
@@ -220,12 +223,12 @@ const CartPage: React.FC = () => {
         }
 
         .clear-button {
-          background-color: #e3342f;
+          background-color: #10b981;
           color: white;
         }
 
         .clear-button:hover {
-          background-color: #cc0000;
+          background-color: #10b981;
         }
       `}</style>
 

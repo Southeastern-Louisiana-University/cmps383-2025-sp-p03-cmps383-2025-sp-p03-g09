@@ -23,7 +23,7 @@ interface UserDto {
 const styles = `
   :root {
     --primary-color: #000000;
-    --accent-color: #ff0000;
+    --accent-color: #10b981;
     --text-light: #ffffff;
     --text-dark: #121212;
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -62,7 +62,7 @@ const styles = `
   }
 
   .ticket-button:hover {
-    background-color: #cc0000;
+    background-color: #10b981;
     transform: translateY(-2px);
   }
 
@@ -159,7 +159,7 @@ const styles = `
   }
 
   .create-button:hover {
-    background-color: #cc0000;
+    background-color: #10b981;
   }
 
   .top-bar {
