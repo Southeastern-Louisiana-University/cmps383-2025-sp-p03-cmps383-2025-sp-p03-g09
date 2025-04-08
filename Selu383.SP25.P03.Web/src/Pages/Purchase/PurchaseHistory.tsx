@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 
-interface FoodItem {
-  name: string;
-  price: number;
-  quantity: number;
-}
-
 interface Order {
   id: number;
   price: number;
   userId: number;
-  seatId: number;
+  seatIds: number[];
   theaterId: number;
   purchaseTime: string;
   ticket?: {
@@ -24,7 +18,11 @@ interface Order {
       name: string;
     };
   };
-  foodItems?: FoodItem[];
+  foodItems?: {
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
 }
 
 const PurchaseHistory: React.FC = () => {
@@ -35,18 +33,7 @@ const PurchaseHistory: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("🧾 Purchase history data:", data);
-
-        // Fix food items if they're nested under a shared reference
-        const fixed = data.map((order: any) => ({
-          ...order,
-          foodItems: order.foodItems?.map((item: any) => ({
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity || 1,
-          })) || [],
-        }));
-
-        setOrders(fixed);
+        setOrders(data);
       });
   }, []);
 
@@ -95,9 +82,8 @@ const PurchaseHistory: React.FC = () => {
         }
 
         .food-list {
+          margin-left: 1rem;
           list-style: disc;
-          margin-left: 1.5rem;
-          margin-top: 0.5rem;
         }
       `}</style>
 
@@ -118,25 +104,27 @@ const PurchaseHistory: React.FC = () => {
                   <strong>Showtime:</strong> {order.ticket?.showtime || "N/A"}
                 </p>
                 <p className="order-detail">
-                  <strong>Seat:</strong> {order.seatId}
+                  <strong>Seats:</strong>{" "}
+                  {order.seatIds && order.seatIds.length > 0
+                    ? order.seatIds.join(", ")
+                    : "N/A"}
                 </p>
                 <p className="order-detail">
                   <strong>Theater:</strong> {order.theaterId}
                 </p>
                 <p className="order-detail">
-                  <strong>Food Items:</strong>
+                  <strong>Food Items:</strong>{" "}
                   {order.foodItems && order.foodItems.length > 0 ? (
                     <ul className="food-list">
-                      {order.foodItems.map((item, i) => (
-                        <li key={i}>
-                          {item.name} x{item.quantity} – ${(
-                            item.price * item.quantity
-                          ).toFixed(2)}
+                      {order.foodItems.map((item, index) => (
+                        <li key={index}>
+                          {item.name} x{item.quantity} – $
+                          {(item.price * item.quantity).toFixed(2)}
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    " None"
+                    "None"
                   )}
                 </p>
                 <p className="order-detail">

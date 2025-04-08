@@ -37,7 +37,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 });
         }
 
-        [HttpGet("user")]
+       [HttpGet("user")]
 public async Task<ActionResult<IEnumerable<object>>> GetOrdersForUser()
 {
     var user = await context.Users
@@ -57,35 +57,50 @@ public async Task<ActionResult<IEnumerable<object>>> GetOrdersForUser()
         return Unauthorized();
     }
 
-    var orders = user.Orders.Select(o => new
+    var orders = user.Orders.Select(o =>
     {
-        o.Id,
-        o.Price,
-        o.UserId,
-        o.TheaterId,
-        o.SeatId,
-        o.TicketId,
-        o.PurchaseTime,
-        Ticket = o.Ticket == null ? null : new
+        var allMatchingTickets = context.Tickets
+            .Where(t =>
+                t.TheaterId == o.TheaterId &&
+                t.Showtime == o.Ticket.Showtime &&
+                t.MovieId == o.Ticket.MovieId &&
+                t.LocationId == o.Ticket.LocationId &&
+                t.Price == 12.99m
+                
+            )
+            .Select(t => t.SeatId)
+            .ToList();
+
+        return new
         {
-            o.Ticket.Id,
-            o.Ticket.Showtime,
-            Movie = o.Ticket.Movie == null ? null : new
+            o.Id,
+            o.Price,
+            o.UserId,
+            o.TheaterId,
+            SeatIds = allMatchingTickets, // ⬅️ All seats, not just one
+            o.TicketId,
+            o.PurchaseTime,
+            Ticket = o.Ticket == null ? null : new
             {
-                o.Ticket.Movie.Title
+                o.Ticket.Id,
+                o.Ticket.Showtime,
+                Movie = o.Ticket.Movie == null ? null : new
+                {
+                    o.Ticket.Movie.Title
+                },
+                Location = o.Ticket.Location == null ? null : new
+                {
+                    o.Ticket.Location.Name
+                }
             },
-            Location = o.Ticket.Location == null ? null : new
+            FoodItems = o.OrderFoodItems.Select(of => new
             {
-                o.Ticket.Location.Name
-            }
-        },
-        FoodItems = o.OrderFoodItems.Select(of => new
-        {
-            of.FoodItemId,
-            of.FoodItem.Name,
-            of.FoodItem.Price,
-            Quantity = 1
-        }).ToList()
+                of.FoodItemId,
+                of.FoodItem.Name,
+                of.FoodItem.Price,
+                Quantity = 1
+            }).ToList()
+        };
     }).ToList();
 
     return Ok(orders);
@@ -93,88 +108,98 @@ public async Task<ActionResult<IEnumerable<object>>> GetOrdersForUser()
 
 
 
+
         [HttpPost]
-        public async Task<IActionResult> CreateOrder()
-        {
-            using var reader = new StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var json = JsonDocument.Parse(body).RootElement;
-
-            if (!json.TryGetProperty("movieId", out var movieIdProp) ||
-                !json.TryGetProperty("locationId", out var locationIdProp) ||
-                !json.TryGetProperty("showtime", out var showtimeProp))
-            {
-                return BadRequest("Missing required ticket creation fields.");
-            }
-
-            var movieId = movieIdProp.GetInt32();
-            var locationId = locationIdProp.GetInt32();
-            var showtime = showtimeProp.GetString();
-
-            var dto = JsonSerializer.Deserialize<OrderDto>(body, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            if (dto == null)
-            {
-                return BadRequest("Invalid order format.");
-            }
-
-            // 🎯 Pick the first available unused seat
-            var usedSeatIds = await context.Tickets.Select(t => t.SeatId).ToListAsync();
-            var seat = await context.Seats.FirstOrDefaultAsync(s => !usedSeatIds.Contains(s.Id));
-
-            if (seat == null)
-            {
-                return BadRequest("No available seats.");
-            }
-
-            // 🏛️ Pick the first available theater (can be randomized if needed)
-            var theater = await context.Theaters.FirstOrDefaultAsync();
-            if (theater == null)
-            {
-                return BadRequest("No theaters available.");
-            }
-
-            // 🎟️ Create ticket
-            var ticket = new Ticket
-            {
-                MovieId = movieId,
-                LocationId = locationId,
-                TheaterId = theater.Id,
-                SeatId = seat.Id,
-                Price = dto.Price,
-                Showtime = showtime ?? "UNKNOWN"
-            };
-
-            context.Tickets.Add(ticket);
-            await context.SaveChangesAsync();
-
-          
-var order = new Order
+public async Task<IActionResult> CreateOrder()
 {
-    Price = dto.Price,
-    UserId = dto.UserId,
-    TheaterId = ticket.TheaterId,
-    SeatId = ticket.SeatId,
-    TicketId = ticket.Id,
-    PurchaseTime = DateTime.UtcNow,
-    OrderFoodItems = dto.FoodItemIds != null
-        ? dto.FoodItemIds.Select(id => new OrderFoodItem { FoodItemId = id }).ToList()
-        : new List<OrderFoodItem>()
-};
+    using var reader = new StreamReader(Request.Body);
+    var body = await reader.ReadToEndAsync();
+    var json = JsonDocument.Parse(body).RootElement;
 
+    if (!json.TryGetProperty("movieId", out var movieIdProp) ||
+        !json.TryGetProperty("locationId", out var locationIdProp) ||
+        !json.TryGetProperty("showtime", out var showtimeProp))
+    {
+        return BadRequest("Missing required ticket creation fields.");
+    }
 
-            context.Orders.Add(order);
-            await context.SaveChangesAsync();
+    var movieId = movieIdProp.GetInt32();
+    var locationId = locationIdProp.GetInt32();
+    var showtime = showtimeProp.GetString();
 
-            return Ok(new
-{
-    order.Id,
-    seatId = order.SeatId,
-    theaterId = order.TheaterId
-});
-        }
+    // Determine ticket quantity by dividing price by standard ticket price (assume 12.99)
+    var totalPrice = json.GetProperty("price").GetDecimal();
+    var ticketUnitPrice = 12.99m;
+    var ticketQuantity = (int)Math.Round(totalPrice / ticketUnitPrice);
+
+    var dto = JsonSerializer.Deserialize<OrderDto>(body, new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true
+    });
+
+    if (dto == null)
+    {
+        return BadRequest("Invalid order format.");
+    }
+
+    // 🪑 Get available seats
+    var usedSeatIds = await context.Tickets.Select(t => t.SeatId).ToListAsync();
+    var availableSeats = await context.Seats
+        .Where(s => !usedSeatIds.Contains(s.Id))
+        .Take(ticketQuantity)
+        .ToListAsync();
+
+    if (availableSeats.Count < ticketQuantity)
+    {
+        return BadRequest("Not enough available seats.");
+    }
+
+    // 🎭 Get theater
+    var theater = await context.Theaters.FirstOrDefaultAsync();
+    if (theater == null)
+    {
+        return BadRequest("No theaters available.");
+    }
+
+    // 🎟️ Create multiple tickets
+    var tickets = availableSeats.Select(seat => new Ticket
+    {
+        MovieId = movieId,
+        LocationId = locationId,
+        TheaterId = theater.Id,
+        SeatId = seat.Id,
+        Price = ticketUnitPrice,
+        Showtime = showtime ?? "UNKNOWN"
+    }).ToList();
+
+    context.Tickets.AddRange(tickets);
+    await context.SaveChangesAsync();
+
+    // 📦 Create one order associated to the first ticket (simplification)
+    var order = new Order
+    {
+        Price = dto.Price,
+        UserId = dto.UserId,
+        TheaterId = theater.Id,
+        SeatId = tickets[0].SeatId,
+        TicketId = tickets[0].Id,
+        PurchaseTime = DateTime.UtcNow,
+        OrderFoodItems = dto.FoodItemIds
+            .Select(id => new OrderFoodItem { FoodItemId = id })
+            .ToList()
+    };
+
+    context.Orders.Add(order);
+    await context.SaveChangesAsync();
+
+    // 🔁 Return order and all seat IDs
+    return Ok(new
+    {
+        order.Id,
+        theaterId = theater.Id,
+        seatIds = tickets.Select(t => t.SeatId).ToList()
+    });
+}
+
     }
 }

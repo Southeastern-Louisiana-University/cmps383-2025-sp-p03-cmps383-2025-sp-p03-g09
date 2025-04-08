@@ -85,14 +85,16 @@ const CartPage: React.FC = () => {
       .filter((item) => item.food)
       .flatMap((item) => Array(item.quantity).fill(item.food!.id));
   
-    const payload = {
-      foodItemIds,
-      price: totalPrice,
-      userId,
-      movieId: Number(ticketItem.movieId),
-      locationId: 1,
-      showtime: ticketItem.showtime!,
-    };
+      const payload = {
+        foodItemIds,
+        price: totalPrice,
+        userId,
+        movieId: Number(ticketItem.movieId),
+        locationId: 1,
+        showtime: ticketItem.showtime!,
+        ticketQuantity: ticketItem.quantity
+      };
+      
   
     console.log("📦 Payload:", payload);
   
@@ -102,33 +104,33 @@ const CartPage: React.FC = () => {
       credentials: "include",
       body: JSON.stringify(payload),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Order failed");
-        return res.json(); // 🔥 important: grab returned seatId + theaterId
-      })
-      .then((data) => {
-        console.log("✅ Order placed successfully");
-  
-        const confirmationData = {
-          movieTitle: ticketItem.name,
-          showtime: ticketItem.showtime,
-          theaterId: data.theaterId,
-          seatId: data.seatId,
-          foodItems: cartItems
-            .filter((item) => item.food)
-            .map((item) => ({
-              name: item.food!.name,
-              price: item.food!.price,
-              quantity: item.quantity,
-            })),
-          totalPrice,
-        };
-  
-        localStorage.setItem("lastConfirmedOrder", JSON.stringify(confirmationData));
-        localStorage.removeItem("cartItems");
-  
-        window.location.href = "/purchase/confirmation";
-      })
+    .then((res) => {
+      if (!res.ok) throw new Error("Order failed");
+      return res.json();
+    })
+    .then((data) => {
+      console.log("✅ Order placed successfully");
+    
+      const confirmationData = {
+        movieTitle: ticketItem.name,
+        showtime: ticketItem.showtime,
+        theaterId: data.theaterId,
+        seatIds: data.seatIds, // 👈✅ Now supports multiple seats
+        foodItems: cartItems
+          .filter((item) => item.food)
+          .map((item) => ({
+            name: item.food!.name,
+            price: item.food!.price,
+            quantity: item.quantity,
+          })),
+        totalPrice,
+      };
+    
+      localStorage.setItem("lastConfirmedOrder", JSON.stringify(confirmationData));
+      localStorage.removeItem("cartItems");
+    
+      window.location.href = "/purchase/confirmation";
+    })
       .catch((err) => {
         console.error("❌ Error confirming purchase:", err);
         alert("Error confirming purchase.");

@@ -27,7 +27,7 @@ const PurchaseConfirmation: React.FC = () => {
     movieTitle,
     showtime,
     theaterId,
-    seatId,
+    seatIds,
     foodItems,
     totalPrice,
   } = confirmationData;
@@ -96,7 +96,12 @@ const PurchaseConfirmation: React.FC = () => {
           <p><strong>Movie:</strong> {movieTitle}</p>
           <p><strong>Showtime:</strong> {showtime}</p>
           <p><strong>Theater:</strong> {theaterId}</p>
-          <p><strong>Seat Assigned:</strong> {seatId}</p>
+
+          {seatIds && seatIds.length > 0 && (
+            <p>
+              <strong>Seats Assigned:</strong> {seatIds.join(", ")}
+            </p>
+          )}
 
           {foodItems && foodItems.length > 0 && (
             <div>
