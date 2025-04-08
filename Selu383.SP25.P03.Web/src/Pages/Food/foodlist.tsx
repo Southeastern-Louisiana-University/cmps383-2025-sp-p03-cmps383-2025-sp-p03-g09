@@ -248,7 +248,7 @@ const FoodList: React.FC = () => {
   const [user, setUser] = useState<UserDto | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
-  const navigate = useNavigate();
+  const nav = useNavigate();
 
   const isAdmin = user?.roles.includes('Admin');
 
@@ -321,7 +321,7 @@ const FoodList: React.FC = () => {
           <div className="food-title-bar">
             <h1 className="food-title">Concession Menu</h1>
             {isAdmin && (
-              <button className="add-button" onClick={() => navigate('/food/create')}>
+              <button className="add-button" onClick={() => nav('/food/create')}>
                 + Add Food Item
               </button>
             )}
@@ -341,7 +341,7 @@ const FoodList: React.FC = () => {
 
                 {isAdmin && (
                   <div className="card-buttons">
-                    <button className="edit-button" onClick={() => navigate(`/food/${item.id}/edit`)}>
+                    <button className="edit-button" onClick={() => nav(`/food/${item.id}/edit`)}>
                       Modify
                     </button>
                     <button className="delete-button" onClick={() => confirmDelete(item)}>
@@ -364,7 +364,7 @@ const FoodList: React.FC = () => {
               <button className="confirm" onClick={handleConfirmedDelete}>Confirm</button>
               <button className="cancel" onClick={() => setShowConfirmModal(false)}>Cancel</button>
             </div>
-          </div>
+          </div>  
         </div>
       )}
     </>
