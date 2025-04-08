@@ -11,6 +11,9 @@ import PurchaseTicket from './Pages/Ticket/purchaseticket';
 import Cart from './Pages/Cart/cart';
 import PurchaseConfirmation from "./Pages/Purchase/PurchaseConfirmation";
 import PurchaseHistory from "./Pages/Purchase/PurchaseHistory";
+import FoodCreate from './Pages/Food/foodcreate';
+import MovieEdit from './Pages/Movie/movieedit';
+import FoodEdit from './Pages/Food/foodedit';
 
 function App() {
   return (
@@ -28,6 +31,9 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/purchase/confirmation" element={<PurchaseConfirmation />} />
         <Route path="/purchase/history" element={<PurchaseHistory />} />
+        <Route path="/food/create" element={<FoodCreate />} />
+        <Route path="/movies/:id/edit" element={<MovieEdit />} />
+        <Route path="/food/:id/edit" element={<FoodEdit />} />
       </Routes>
     </Router>
   );
