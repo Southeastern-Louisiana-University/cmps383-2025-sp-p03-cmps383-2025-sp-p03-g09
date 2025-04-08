@@ -100,12 +100,13 @@ const styles = `
   .ticket-button {
     background-color: var(--accent-color);
     color: var(--text-light);
-    padding: 12px 24px;
+    padding: 8px 20px; /* Reduced padding to make buttons less tall */
     border-radius: 4px;
     font-weight: bold;
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
+    margin-right: 8px; /* Added margin to space buttons farther apart */
   }
 
   .ticket-button:hover {
@@ -317,12 +318,20 @@ const Home: React.FC = () => {
                       <span>Runtime: {movie.duration} mins</span> • <span>Rating: {movie.rating}</span>
                     </div>
                     <p className="text-gray-300 mb-4">{movie.description}</p>
-                    <button
-                      className="ticket-button mt-auto w-max"
-                      onClick={() => navigate(`/movies/${movie.id}`)}
-                    >
-                      Select Showtimes
-                    </button>
+                    <div className="flex items-center gap-4 mt-2">
+                    <span className="text-white font-medium">Select showtime:</span>
+                    <div className="flex gap-4">
+                      {["12:00PM", "3:00PM", "6:00PM", "9:00PM"].map((time) => (
+                        <button
+                          key={time}
+                          className="ticket-button"
+                          onClick={() => navigate(`/movies/${movie.id}/purchase?showtime=${time}`)}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   </div>
                 </div>
               ))}
