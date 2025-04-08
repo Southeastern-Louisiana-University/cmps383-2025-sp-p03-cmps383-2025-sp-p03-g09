@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 interface FoodItem {
   id: number;
@@ -32,6 +33,22 @@ const styles = `
     color: var(--text-light);
     margin: 0;
     padding: 0;
+  }
+
+  .ticket-button {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .ticket-button:hover {
+    background-color: #cc0000;
+    transform: translateY(-2px);
   }
 
   .food-container {
@@ -242,6 +259,7 @@ const styles = `
 `;
 
 const FoodList: React.FC = () => {
+
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
