@@ -19,6 +19,235 @@ interface UserDto {
   roles: string[];
 }
 
+const styles = `
+  :root {
+    --primary-color: #000000;
+    --accent-color: #10b981;
+    --text-light: #ffffff;
+    --text-dark: #121212;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  body {
+    color: var(--text-light);
+    background-color: var(--primary-color);
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background-color: #121212;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  header nav a {
+    transition: color 0.3s ease;
+  }
+
+  header nav a:hover {
+    color: var(--accent-color);
+  }
+
+  .ticket-button {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-right: 8px;
+  }
+
+  .ticket-button:hover {
+    background-color: #10b981;
+    transform: translateY(-2px);
+  }
+
+  .movie-card {
+    display: flex;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    width: 100%;
+    max-width: 1000px;
+  }
+
+  .movie-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .movie-poster {
+    width: 250px;
+    height: auto;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .movie-details {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .movies-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  main {
+    animation: fadeIn 0.5s ease-out forwards;
+    width: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+
+  .cinema-logo {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .nav-container {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .nav-links {
+      margin-top: 1rem;
+    }
+
+    .movie-card {
+      flex-direction: column;
+    }
+
+    .movie-poster {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  .create-button {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .create-button:hover {
+    background-color: #10b981;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+
+  .edit-button {
+    background-color: #555;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .edit-button:hover {
+    background-color: #777;
+  }
+
+  .delete-button {
+    background-color: #990000;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .delete-button:hover {
+    background-color: #cc0000;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background-color: #1e1e1e;
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+  }
+
+  .modal-buttons {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .modal-buttons button {
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .modal-buttons .confirm {
+    background-color: #ff0000;
+    color: white;
+    border: none;
+  }
+
+  .modal-buttons .cancel {
+    background-color: #333;
+    color: white;
+    border: none;
+  }
+`;
+
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [user, setUser] = useState<UserDto | null>(null);
@@ -88,172 +317,7 @@ const MovieList: React.FC = () => {
 
   return (
     <>
-      <style>{`
-        :root {
-          --primary-color: #000000;
-          --accent-color: #ff0000;
-          --text-light: #ffffff;
-          --text-dark: #121212;
-          --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        body {
-          background-color: var(--primary-color);
-          color: var(--text-light);
-        }
-
-        .ticket-button {
-          background-color: var(--accent-color);
-          color: white;
-          padding: 12px 24px;
-          border-radius: 4px;
-          font-weight: bold;
-          border: none;
-          cursor: pointer;
-          transition: 0.3s ease;
-        }
-
-        .ticket-button:hover {
-          background-color: #cc0000;
-        }
-
-        .movie-card {
-          display: flex;
-          background-color: #1e1e1e;
-          border-radius: 8px;
-          box-shadow: var(--card-shadow);
-          overflow: hidden;
-          transition: transform 0.3s ease;
-          width: 100%;
-          max-width: 1000px;
-        }
-
-        .movie-card:hover {
-          transform: translateY(-5px);
-        }
-
-        .movie-poster {
-          width: 250px;
-          object-fit: cover;
-        }
-
-        .movie-details {
-          padding: 1rem;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-
-        .movies-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: flex;
-          flex-direction: column;
-          gap: 2rem;
-        }
-
-        .top-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-        }
-
-        .create-button {
-          background-color: var(--accent-color);
-          color: white;
-          padding: 10px 16px;
-          font-size: 1rem;
-          font-weight: bold;
-          border-radius: 6px;
-          border: none;
-          cursor: pointer;
-        }
-
-        .create-button:hover {
-          background-color: #cc0000;
-        }
-
-        .admin-buttons {
-          display: flex;
-          gap: 10px;
-          margin-top: 1rem;
-        }
-
-        .edit-button {
-          background-color: #555;
-          color: white;
-          padding: 10px 16px;
-          border-radius: 6px;
-          border: none;
-          cursor: pointer;
-        }
-
-        .edit-button:hover {
-          background-color: #777;
-        }
-
-        .delete-button {
-          background-color: #990000;
-          color: white;
-          padding: 10px 16px;
-          border-radius: 6px;
-          border: none;
-          cursor: pointer;
-        }
-
-        .delete-button:hover {
-          background-color: #cc0000;
-        }
-
-        .modal-backdrop {
-          position: fixed;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background-color: #1e1e1e;
-          padding: 2rem;
-          border-radius: 10px;
-          max-width: 400px;
-          text-align: center;
-          box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
-        }
-
-        .modal-buttons {
-          margin-top: 1.5rem;
-          display: flex;
-          justify-content: center;
-          gap: 1rem;
-        }
-
-        .modal-buttons button {
-          padding: 10px 20px;
-          font-weight: bold;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-
-        .modal-buttons .confirm {
-          background-color: #ff0000;
-          color: white;
-          border: none;
-        }
-
-        .modal-buttons .cancel {
-          background-color: #333;
-          color: white;
-          border: none;
-        }
-      `}</style>
-
+      <style>{styles}</style>
       <div className="min-h-screen bg-black text-white w-full">
         <Navbar />
         <main className="py-16">
@@ -262,7 +326,7 @@ const MovieList: React.FC = () => {
               <h2 className="text-3xl font-bold text-white">Now Showing</h2>
               {isAdmin && (
                 <button className="create-button" onClick={() => navigate('/movies/create')}>
-                  + Create Movie
+                  + Add Movie
                 </button>
               )}
             </div>
@@ -283,11 +347,20 @@ const MovieList: React.FC = () => {
                     <span>Runtime: {movie.duration} mins</span> • <span>Rating: {movie.rating}</span>
                   </div>
                   <p className="text-gray-300 mb-4">{movie.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    <button className="ticket-button" onClick={() => navigate(`/movies/${movie.id}`)}>
-                      Select Showtimes
-                    </button>
+
+                  <div className="flex flex-col gap-2 mt-2">
+                  <span className="text-white font-medium">Select showtime:</span>
+                    <div className="flex gap-4">
+                      {["12:00PM", "3:00PM", "6:00PM", "9:00PM"].map((time) => (
+                        <button
+                          key={time}
+                          className="ticket-button"
+                          onClick={() => navigate(`/movies/${movie.id}/purchase?showtime=${time}`)}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
 
                     {isAdmin && (
                       <div className="admin-buttons">

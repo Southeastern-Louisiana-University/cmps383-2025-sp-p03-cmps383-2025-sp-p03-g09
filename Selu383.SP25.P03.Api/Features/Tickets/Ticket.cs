@@ -18,5 +18,6 @@ namespace Selu383.SP25.P03.Api.Features.Tickets
         public Seat Seat { get; set; }
         public int MovieId { get; set; }
         public Movie Movie { get; set; }
+        public string Showtime { get; set; } = string.Empty;
     }
 }
