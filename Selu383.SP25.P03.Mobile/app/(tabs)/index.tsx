@@ -108,14 +108,14 @@ export default function HomeScreen() {
         defaultSource={require('@/assets/images/partial-react-logo.png')} // Placeholder
       />
       <ThemedView style={styles.movieInfo}>
-        <ThemedText type="defaultSemiBold" numberOfLines={1}>{item.title}</ThemedText>
+        <ThemedText style={styles.movieTitle} numberOfLines={1}>{item.title}</ThemedText>
         <ThemedText style={styles.movieRating}>{item.rating}</ThemedText>
       </ThemedView>
     </TouchableOpacity>
   );
 
   return (
-          <ParallaxScrollView
+    <ParallaxScrollView
       headerBackgroundColor={{ light: '#10b981', dark: '#0d9268' }}
       headerImage={
         <ThemedView style={styles.headerContent}>
@@ -142,6 +142,11 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
       
+      {/* Purchased Tickets Label */}
+      <ThemedText type="subtitle" style={styles.purchasedTicketsTitle}>
+        Purchased Tickets
+      </ThemedText>
+      
       {/* Featured Movie Section */}
       <TouchableOpacity 
         style={styles.featuredContainer}
@@ -154,19 +159,20 @@ export default function HomeScreen() {
         <View style={styles.featuredGradient}>
           <ThemedText type="title" style={styles.featuredTitle}>{featuredMovie.title}</ThemedText>
           <TouchableOpacity 
-            style={styles.watchButton}
+            style={styles.viewTicketsButton}
+            onPress={() => router.push('/tickets')}
           >
-            <IconSymbol name="play.fill" size={16} color="#fff" />
-            <ThemedText style={styles.watchButtonText}>Watch Trailer</ThemedText>
+            <IconSymbol name="ticket" size={16} color="#fff" />
+            <ThemedText style={styles.viewTicketsText}>View Tickets</ThemedText>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
       
       {/* Now Playing Section */}
       <ThemedView style={styles.sectionContainer}>
-        <ThemedView style={styles.sectionHeader}>
-          <ThemedText type="subtitle">Now Playing</ThemedText>
-        </ThemedView>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          Now Playing
+        </ThemedText>
         
         <FlatList
           data={nowPlaying}
@@ -180,9 +186,9 @@ export default function HomeScreen() {
       
       {/* Coming Soon Section */}
       <ThemedView style={styles.sectionContainer}>
-        <ThemedView style={styles.sectionHeader}>
-          <ThemedText type="subtitle">Coming Soon</ThemedText>
-        </ThemedView>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          Coming Soon
+        </ThemedText>
         
         <FlatList
           data={comingSoon}
@@ -194,24 +200,26 @@ export default function HomeScreen() {
         />
       </ThemedView>
       
-      {/* Ticket Shortcuts */}
-      <ThemedView style={styles.ticketContainer}>
-        <ThemedText type="subtitle">Quick Actions</ThemedText>
-        <ThemedView style={styles.ticketButtons}>
+      {/* Quick Actions */}
+      <ThemedView style={styles.quickActionsContainer}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          Quick Actions
+        </ThemedText>
+        
+        <ThemedView style={styles.quickActionsButtons}>
           <TouchableOpacity 
-            style={styles.ticketButton}
+            style={styles.quickActionButton}
             onPress={() => router.push('/tickets')}
           >
-            <IconSymbol name="ticket" size={28} color="#000000" />
-            <ThemedText type="defaultSemiBold">My Tickets</ThemedText>
+            <IconSymbol name="ticket" size={28} color="#fff" />
+            <ThemedText style={styles.quickActionText}>My Tickets</ThemedText>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={styles.ticketButton}
-   
+            style={styles.quickActionButton}
           >
-            <IconSymbol name="film" size={28} color="#000000" />
-            <ThemedText type="defaultSemiBold">Buy Tickets</ThemedText>
+            <IconSymbol name="film" size={28} color="#fff" />
+            <ThemedText style={styles.quickActionText}>Buy Tickets</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
@@ -262,6 +270,24 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     color: '#FFFFFF',
   },
+  purchasedTicketsTitle: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    marginTop: 100, // Add space between welcome and this title
+    marginBottom: 8, // Reduced margin to be closer to the box
+    marginLeft: 16,
+    fontWeight: '600',
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    marginBottom: 16,
+    marginLeft: 16,
+    fontWeight: '600',
+  },
   featuredContainer: {
     width: '100%',
     height: 240,
@@ -290,7 +316,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 12,
   },
-  watchButton: {
+  viewTicketsButton: {
     flexDirection: 'row',
     backgroundColor: '#10b981',
     paddingVertical: 8,
@@ -299,23 +325,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
   },
-  watchButtonText: {
+  viewTicketsText: {
     color: '#fff',
     fontWeight: 'bold',
     marginLeft: 6,
-  },
-  sectionContainer: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 16,
-  },
-  seeAllText: {
-    color: '#10b981',
   },
   movieList: {
     paddingLeft: 16,
@@ -326,12 +339,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: '#1a1a1a',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 5,
   },
   poster: {
     width: '100%',
@@ -341,32 +354,40 @@ const styles = StyleSheet.create({
   movieInfo: {
     padding: 8,
   },
+  movieTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
   movieRating: {
     fontSize: 12,
     color: '#888',
     marginTop: 4,
   },
-  ticketContainer: {
+  quickActionsContainer: {
     marginBottom: 32,
+  },
+  quickActionsButtons: {
+    flexDirection: 'row',
     paddingHorizontal: 16,
   },
-  ticketButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  ticketButton: {
+  quickActionButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#10b981',
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  quickActionText: {
+    marginTop: 8,
+    color: '#fff',
+    fontWeight: '600',
   },
 });
