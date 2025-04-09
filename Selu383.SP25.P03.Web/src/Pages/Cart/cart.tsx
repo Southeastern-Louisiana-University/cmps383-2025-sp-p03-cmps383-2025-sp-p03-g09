@@ -85,7 +85,7 @@ const CartPage: React.FC = () => {
         price: totalPrice,
         userId,
         movieId: Number(ticketItem.movieId),
-        locationId: 1,
+        locationId: ticketItem.locationId,
         showtime: ticketItem.showtime!,
         ticketQuantity: ticketItem.quantity
       };
