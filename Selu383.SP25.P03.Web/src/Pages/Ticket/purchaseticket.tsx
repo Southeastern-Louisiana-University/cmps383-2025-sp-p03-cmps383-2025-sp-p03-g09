@@ -48,11 +48,22 @@ const PurchaseTicket: React.FC = () => {
         .then(setMovieDetails);
     }
 
-    if (locationId) {
-      fetch(`/api/locations/${locationId}`)
-        .then((res) => res.json())
-        .then(setLocationDetails);
-    }
+    const selected = localStorage.getItem("selectedLocation");
+if (selected) {
+  const parsed = JSON.parse(selected);
+
+  fetch("/api/locations")
+    .then((res) => res.json())
+    .then((all) => {
+      const match = all.find((loc: Location) => loc.name === parsed.name);
+      if (match) {
+        setLocationDetails(match);
+      } else {
+        console.warn("⚠️ No matching location found for:", parsed.name);
+      }
+    });
+}
+
 
     fetch("/api/authentication/me", { credentials: "include" })
       .then((res) => res.json())
