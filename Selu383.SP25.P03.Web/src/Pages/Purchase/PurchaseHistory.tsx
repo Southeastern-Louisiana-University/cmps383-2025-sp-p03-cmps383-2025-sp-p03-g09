@@ -33,7 +33,37 @@ const PurchaseHistory: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("🧾 Purchase history data:", data);
-        setOrders(data);
+
+        // try to pull food quantities from lastConfirmedOrder in localStorage
+        const localOrderRaw = localStorage.getItem("lastConfirmedOrder");
+        let quantityMap: Record<string, number> = {};
+
+        if (localOrderRaw) {
+          try {
+            const localOrder = JSON.parse(localOrderRaw);
+            if (Array.isArray(localOrder.foodItems)) {
+              quantityMap = localOrder.foodItems.reduce((acc: Record<string, number>, item: any) => {
+                acc[item.name] = item.quantity;
+                return acc;
+              }, {});
+            }
+          } catch (e) {
+            console.error("⚠️ Failed to parse lastConfirmedOrder:", e);
+          }
+        }
+
+        const updatedOrders = data.map((order: Order) => {
+          if (!order.foodItems) return order;
+
+          const patchedFoodItems = order.foodItems.map((item) => ({
+            ...item,
+            quantity: quantityMap[item.name] || item.quantity || 1,
+          }));
+
+          return { ...order, foodItems: patchedFoodItems };
+        });
+
+        setOrders(updatedOrders);
       });
   }, []);
 
