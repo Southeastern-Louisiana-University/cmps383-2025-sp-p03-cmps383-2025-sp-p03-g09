@@ -118,7 +118,8 @@ public async Task<IActionResult> CreateOrder()
 
     if (!json.TryGetProperty("movieId", out var movieIdProp) ||
         !json.TryGetProperty("locationId", out var locationIdProp) ||
-        !json.TryGetProperty("showtime", out var showtimeProp))
+        !json.TryGetProperty("showtime", out var showtimeProp) ||
+        !json.TryGetProperty("ticketQuantity", out var ticketQtyProp))
     {
         return BadRequest("Missing required ticket creation fields.");
     }
@@ -126,10 +127,7 @@ public async Task<IActionResult> CreateOrder()
     var movieId = movieIdProp.GetInt32();
     var locationId = locationIdProp.GetInt32();
     var showtime = showtimeProp.GetString();
-
-    var totalPrice = json.GetProperty("price").GetDecimal();
-    var ticketUnitPrice = 12.99m;
-    var ticketQuantity = (int)Math.Round(totalPrice / ticketUnitPrice);
+    var ticketQuantity = ticketQtyProp.GetInt32(); // 💥 Use real value
 
     var dto = JsonSerializer.Deserialize<OrderDto>(body, new JsonSerializerOptions
     {
@@ -141,6 +139,7 @@ public async Task<IActionResult> CreateOrder()
         return BadRequest("Invalid order format.");
     }
 
+    // 🪑 Get available seats
     var usedSeatIds = await context.Tickets.Select(t => t.SeatId).ToListAsync();
     var availableSeats = await context.Seats
         .Where(s => !usedSeatIds.Contains(s.Id))
@@ -152,12 +151,15 @@ public async Task<IActionResult> CreateOrder()
         return BadRequest("Not enough available seats.");
     }
 
+    // 🎭 Get theater
     var theater = await context.Theaters.FirstOrDefaultAsync();
     if (theater == null)
     {
         return BadRequest("No theaters available.");
     }
 
+    // 🎟️ Create multiple tickets
+    var ticketUnitPrice = 12.99m;
     var tickets = availableSeats.Select(seat => new Ticket
     {
         MovieId = movieId,
@@ -171,6 +173,7 @@ public async Task<IActionResult> CreateOrder()
     context.Tickets.AddRange(tickets);
     await context.SaveChangesAsync();
 
+    // 📦 Create one order for the first ticket
     var order = new Order
     {
         Price = dto.Price,
@@ -182,23 +185,19 @@ public async Task<IActionResult> CreateOrder()
     };
 
     context.Orders.Add(order);
-    await context.SaveChangesAsync(); // Must save first to get Order.Id
+    await context.SaveChangesAsync();
 
-    // De-duplicate only unique FoodItemIds
-// De-duplicate only unique FoodItemIds
-var uniqueFoodItemIds = dto.FoodItemIds.Distinct();
+    // 🍿 Add unique food items only (quantity handled client-side)
+    var uniqueFoodItemIds = dto.FoodItemIds.Distinct();
+    var orderFoodItems = uniqueFoodItemIds
+        .Select(id => new OrderFoodItem
+        {
+            OrderId = order.Id,
+            FoodItemId = id
+        })
+        .ToList();
 
-var orderFoodItems = uniqueFoodItemIds
-    .Select(id => new OrderFoodItem
-    {
-        OrderId = order.Id,
-        FoodItemId = id
-    })
-    .ToList();
-
-context.OrderFoodItems.AddRange(orderFoodItems);
-
-
+    context.OrderFoodItems.AddRange(orderFoodItems);
     await context.SaveChangesAsync();
 
     return Ok(new
@@ -208,6 +207,7 @@ context.OrderFoodItems.AddRange(orderFoodItems);
         seatIds = tickets.Select(t => t.SeatId).ToList()
     });
 }
+
 
     }
 }
