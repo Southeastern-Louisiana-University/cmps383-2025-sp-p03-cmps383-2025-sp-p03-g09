@@ -1,6 +1,5 @@
-// tickets.tsx - This will be your tickets tab screen
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, View, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -17,7 +16,6 @@ interface Ticket {
   confirmationCode: string;
 }
 
-// Sample data - replace with your API call or local storage retrieval
 const SAMPLE_TICKETS: Ticket[] = [
   {
     id: '1',
@@ -43,16 +41,13 @@ export default function TicketsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, fetch from an API or local storage
-    // For now, use sample data
     setTimeout(() => {
       setTickets(SAMPLE_TICKETS);
       setLoading(false);
-    }, 1000); // Simulate loading delay
+    }, 1000); 
   }, []);
 
   const renderTicket = ({ item }: { item: Ticket }) => {
-    // Format date nicely
     const date = new Date(item.date);
     const formattedDate = date.toLocaleDateString('en-US', {
       weekday: 'short',
@@ -61,13 +56,12 @@ export default function TicketsScreen() {
     });
 
     return (
-      <TouchableOpacity
-        style={styles.ticketCard}>
+      <TouchableOpacity style={styles.ticketCard}>
         <ThemedView style={styles.ticketHeader}>
           <ThemedText type="defaultSemiBold" numberOfLines={1} style={styles.movieTitle}>
             {item.movieTitle}
           </ThemedText>
-          <IconSymbol name="ticket" size={24} color="#A1CEDC" />
+          <IconSymbol name="ticket" size={24} color="#10b981" />
         </ThemedView>
 
         <ThemedView style={styles.ticketDetails}>
@@ -86,6 +80,8 @@ export default function TicketsScreen() {
             <ThemedText style={styles.detailValue}>{item.seats.join(', ')}</ThemedText>
           </ThemedView>
 
+          <View style={styles.divider} />
+          
           <ThemedView style={styles.confirmationRow}>
             <ThemedText style={styles.confirmationLabel}>Confirmation:</ThemedText>
             <ThemedText type="defaultSemiBold" style={styles.confirmationCode}>
@@ -99,13 +95,13 @@ export default function TicketsScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#10b981', dark: '#10b981' }}
       headerImage={
         <ThemedText type="title" style={styles.headerTitle}>My Tickets</ThemedText>
       }>
       <ThemedView style={styles.container}>
         {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
+          <ActivityIndicator size="large" color="#10b981" />
         ) : tickets.length > 0 ? (
           <FlatList
             data={tickets}
@@ -115,7 +111,7 @@ export default function TicketsScreen() {
           />
         ) : (
           <ThemedView style={styles.emptyContainer}>
-            <IconSymbol name="ticket" size={64} color="#ccc" />
+            <IconSymbol name="ticket" size={64} color="#10b981" />
             <ThemedText type="subtitle" style={styles.emptyText}>
               No tickets yet
             </ThemedText>
@@ -135,68 +131,77 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#121212',
   },
   headerTitle: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 150,
     left: 20,
-    fontSize: 28,
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   ticketList: {
     padding: 4,
   },
   ticketCard: {
-    marginBottom: 16,
+    marginBottom: 24,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: '#10b981',
+    borderWidth: 1,
+    borderColor: '#10b981', 
   },
   ticketHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#000000',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    padding: 16,
+    backgroundColor: '#10b981', 
   },
   movieTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   ticketDetails: {
     padding: 16,
   },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   detailLabel: {
-    width: 60,
-    color: '#666',
+    width: 120,
+    color: '#888',
+    fontSize: 16,
   },
   detailValue: {
     flex: 1,
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(16, 185, 129, 0.3)', 
+    marginVertical: 12,
   },
   confirmationRow: {
     flexDirection: 'row',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    alignItems: 'center',
   },
   confirmationLabel: {
-    width: 100,
-    color: '#666',
+    width: 120,
+    color: '#888',
+    fontSize: 16,
   },
   confirmationCode: {
     flex: 1,
-    color: '#A1CEDC',
+    color: '#10b981', 
+    fontSize: 16,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    letterSpacing: 1,
   },
   emptyContainer: {
     flex: 1,
@@ -210,7 +215,7 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   browseButton: {
-    backgroundColor: '#A1CEDC',
+    backgroundColor: '#10b981', 
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
