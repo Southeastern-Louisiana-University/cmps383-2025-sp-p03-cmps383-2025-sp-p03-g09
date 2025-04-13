@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useParams } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 
+if (!localStorage.getItem("guestId")) {
+  localStorage.setItem("guestId", crypto.randomUUID());
+}
+
 // Food item interface
 interface FoodItem {
   id: number;
@@ -49,21 +53,20 @@ const PurchaseTicket: React.FC = () => {
     }
 
     const selected = localStorage.getItem("selectedLocation");
-if (selected) {
-  const parsed = JSON.parse(selected);
+    if (selected) {
+      const parsed = JSON.parse(selected);
 
-  fetch("/api/locations")
-    .then((res) => res.json())
-    .then((all) => {
-      const match = all.find((loc: Location) => loc.name === parsed.name);
-      if (match) {
-        setLocationDetails(match);
-      } else {
-        console.warn("⚠️ No matching location found for:", parsed.name);
-      }
-    });
-}
-
+      fetch("/api/locations")
+        .then((res) => res.json())
+        .then((all) => {
+          const match = all.find((loc: Location) => loc.name === parsed.name);
+          if (match) {
+            setLocationDetails(match);
+          } else {
+            console.warn("⚠️ No matching location found for:", parsed.name);
+          }
+        });
+    }
 
     fetch("/api/authentication/me", { credentials: "include" })
       .then((res) => res.json())
@@ -103,11 +106,11 @@ if (selected) {
 
   const handleAddToCart = () => {
     const existing = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  
+
     const ticketNameParts = [];
     if (movieDetails?.title) ticketNameParts.push(movieDetails.title);
     if (locationDetails?.name) ticketNameParts.push(`(${locationDetails.name})`);
-  
+
     const ticketItem = {
       id: Date.now(),
       name: ticketNameParts.join(" "),
@@ -119,7 +122,7 @@ if (selected) {
       seatId: undefined,
       theaterId: undefined,
     };
-  
+
     const foodCartItems = cartItems.map((item) => ({
       id: Date.now() + item.food.id,
       name: item.food.name,
@@ -130,19 +133,14 @@ if (selected) {
       movieId: undefined,
       locationId: undefined,
       showtime: undefined,
-      food: item.food, // ✅ THIS is the critical part
+      food: item.food,
     }));
-  
+
     const allItems = [ticketItem, ...existing, ...foodCartItems];
-  
+
     localStorage.setItem("cartItems", JSON.stringify(allItems));
     window.location.href = "/cart";
   };
-  
-  
-  
-  
-  
 
   const ticketTotalPrice = 12.99 * ticketQuantity;
   const foodTotalPrice = cartItems.reduce(
@@ -287,25 +285,14 @@ if (selected) {
           <button className="clear-cart-button mb-4" onClick={handleClearCart}>
             Clear Cart
           </button>
+
           <div className="bg-gray-900 p-4 rounded mb-6">
             <h2 className="text-xl font-bold mb-2">Ticket Details</h2>
-            {movieDetails && (
-              <p>
-                <strong>Movie:</strong> {movieDetails.title}
-              </p>
-            )}
-            {locationDetails && (
-              <p>
-                <strong>Location:</strong> {locationDetails.name}
-              </p>
-            )}
-            <p>
-              <strong>Showtime:</strong> {showtime}
-            </p>
+            {movieDetails && <p><strong>Movie:</strong> {movieDetails.title}</p>}
+            {locationDetails && <p><strong>Location:</strong> {locationDetails.name}</p>}
+            <p><strong>Showtime:</strong> {showtime}</p>
             <div className="flex items-center gap-4 mt-4">
-              <label htmlFor="ticket-quantity" className="text-white">
-                <strong>Tickets:</strong>
-              </label>
+              <label htmlFor="ticket-quantity" className="text-white"><strong>Tickets:</strong></label>
               <select
                 id="ticket-quantity"
                 value={ticketQuantity}
@@ -313,70 +300,50 @@ if (selected) {
                 className="ticket-dropdown"
               >
                 {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
+                  <option key={num} value={num}>{num}</option>
                 ))}
               </select>
             </div>
-            <p className="mt-4">
-              <strong>Ticket Price:</strong> ${ticketTotalPrice.toFixed(2)}
-            </p>
+            <p className="mt-4"><strong>Ticket Price:</strong> ${ticketTotalPrice.toFixed(2)}</p>
           </div>
+
           {cartItems.length > 0 && (
             <div className="bg-gray-900 p-4 rounded mb-6">
               <h2 className="text-xl font-bold mb-2">Food Items</h2>
               {cartItems.map((item) => (
                 <div key={item.food.id} className="cart-item">
                   <div className="cart-item-details">
-                    <span>
-                      {item.food.name} x{item.quantity}
-                    </span>
+                    <span>{item.food.name} x{item.quantity}</span>
                     <span>${(item.food.price * item.quantity).toFixed(2)}</span>
                   </div>
-                  <button
-                    className="remove-button"
-                    onClick={() => handleRemoveFood(item.food.id)}
-                  >
+                  <button className="remove-button" onClick={() => handleRemoveFood(item.food.id)}>
                     Remove
                   </button>
                 </div>
               ))}
             </div>
           )}
+
           <div className="cart-total">Total: ${totalPrice.toFixed(2)}</div>
           <button
-  className="bg-red-600 text-white px-6 py-3 mt-8 text-lg rounded hover:bg-red-700 transition w-full"
-  onClick={handleAddToCart}
->
-  Add to Cart
-</button>
-
-
+            className="bg-red-600 text-white px-6 py-3 mt-8 text-lg rounded hover:bg-red-700 transition w-full"
+            onClick={handleAddToCart}
+          >
+            Add to Cart
+          </button>
         </div>
 
         <div className="food-ads">
-          <h2 className="text-xl font-bold text-center mb-4">
-            Want to add some food?
-          </h2>
+          <h2 className="text-xl font-bold text-center mb-4">Want to add some food?</h2>
           {foodItems.map((food: FoodItem) => (
             <div key={food.id} className="food-item">
-              <img
-                src={food.imageUrl || "/fallback.jpg"}
-                alt={food.name}
-                className="food-image"
-              />
+              <img src={food.imageUrl || "/fallback.jpg"} alt={food.name} className="food-image" />
               <div className="food-details">
                 <div>
                   <p className="food-name">{food.name}</p>
                   <p className="food-price">${food.price.toFixed(2)}</p>
                 </div>
-                <button
-                  className="add-button"
-                  onClick={() => handleAddFood(food)}
-                >
-                  Add
-                </button>
+                <button className="add-button" onClick={() => handleAddFood(food)}>Add</button>
               </div>
             </div>
           ))}

@@ -9,12 +9,16 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>());
 
+            // 🔥 Clear dependent data first
             context.Tickets.RemoveRange(context.Tickets);
             context.SaveChanges();
 
+            // 💣 Wipe and reset the Locations table
             context.Locations.RemoveRange(context.Locations);
             context.SaveChanges();
+            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Locations', RESEED, 0)");
 
+            // ✅ Seed the real locations
             context.Locations.AddRange(
                 new Location
                 {

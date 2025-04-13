@@ -11,13 +11,13 @@ namespace Selu383.SP25.P03.Api.Data
             {
                 context.Seats.RemoveRange(context.Seats);
                 context.SaveChanges();
-
                 context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Seats', RESEED, 0)");
 
                 var theaters = context.Theaters.ToList();
+
                 foreach (var theater in theaters)
                 {
-                    int totalSeats = theater.SeatCount > 0 ? theater.SeatCount : 200;
+                    int totalSeats = theater.SeatCount;
                     int rows = (int)Math.Sqrt(totalSeats);
                     int cols = (int)Math.Ceiling((double)totalSeats / rows);
 
@@ -26,8 +26,7 @@ namespace Selu383.SP25.P03.Api.Data
                     {
                         for (int col = 1; col <= cols; col++)
                         {
-                            if (seats.Count >= totalSeats)
-                                break;
+                            if (seats.Count >= totalSeats) break;
 
                             seats.Add(new Seat
                             {

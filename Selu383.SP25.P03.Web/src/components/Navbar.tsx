@@ -14,6 +14,11 @@ interface Location {
   address: string;
 }
 
+if (!localStorage.getItem("guestId")) {
+  localStorage.setItem("guestId", crypto.randomUUID());
+}
+
+
 const Navbar: React.FC = () => {
   const [user, setUser] = useState<UserDto | null>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -42,6 +47,18 @@ const Navbar: React.FC = () => {
     if (stored) {
       setSelectedLocation(JSON.parse(stored));
     }
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const updated = localStorage.getItem('selectedLocation');
+      if (updated) {
+        setSelectedLocation(JSON.parse(updated));
+      }
+    };
+  
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   useEffect(() => {

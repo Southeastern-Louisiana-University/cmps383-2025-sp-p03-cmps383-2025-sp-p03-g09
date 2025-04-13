@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
-using Selu383.SP25.P03.Api.Features.Tickets;
 using Selu383.SP25.P03.Api.Features.Seats;
+using Selu383.SP25.P03.Api.Features.Tickets;
+using Selu383.SP25.P03.Api.Features.Users;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -14,10 +16,12 @@ namespace Selu383.SP25.P03.Api.Controllers
         private readonly DbSet<Ticket> tickets;
         private readonly DbSet<Seat> seats;
         private readonly DataContext dataContext;
+        private readonly UserManager<User> userManager;
 
-        public TicketsController(DataContext dataContext)
+        public TicketsController(DataContext dataContext, UserManager<User> userManager)
         {
             this.dataContext = dataContext;
+            this.userManager = userManager;
             tickets = dataContext.Set<Ticket>();
             seats = dataContext.Set<Seat>();
         }
@@ -41,29 +45,36 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
-        public ActionResult<TicketDto> CreateTicket(TicketDto dto)
+        [AllowAnonymous]
+        public async Task<ActionResult<TicketDto>> CreateTicket(TicketDto dto)
         {
             if (IsInvalid(dto))
             {
                 return BadRequest("Invalid ticket data.");
             }
 
-            var seat = seats.FirstOrDefault(s => s.Id == dto.SeatId);
+            var seat = await seats.FirstOrDefaultAsync(s => s.Id == dto.SeatId);
             if (seat == null)
             {
                 return BadRequest($"Seat with ID {dto.SeatId} does not exist.");
             }
 
-            var seatTaken = tickets.Any(t => t.SeatId == dto.SeatId && t.Showtime == dto.Showtime);
+            var seatTaken = await tickets.AnyAsync(t => t.SeatId == dto.SeatId && t.Showtime == dto.Showtime);
             if (seatTaken)
             {
-                return Conflict("That seat is already taken for this showtime. Try again, clown.");
+                return Conflict("That seat is already taken for this showtime.");
             }
 
-            if (seat.IsReserved)
+            var currentUser = await userManager.GetUserAsync(User);
+            var guestId = Request.Headers["X-Guest-ID"].ToString();
+
+            bool isSeatOwned = currentUser != null
+                ? seat.ReservedByUserId == currentUser.Id
+                : seat.ReservedByGuestId == guestId;
+
+            if (!seat.IsReserved || !isSeatOwned)
             {
-                return Conflict("Seat is already reserved. Better luck next time.");
+                return BadRequest("You do not have permission to use this seat.");
             }
 
             var ticket = new Ticket
@@ -77,16 +88,14 @@ namespace Selu383.SP25.P03.Api.Controllers
             };
 
             tickets.Add(ticket);
-            seat.IsReserved = true;
             dataContext.SaveChanges();
 
             dto.Id = ticket.Id;
-
             return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
+        [Authorize(Roles = UserRoleNames.Admin)]
         public ActionResult<TicketDto> UpdateTicket(int id, TicketDto dto)
         {
             if (IsInvalid(dto))
@@ -100,14 +109,12 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
-            // Ensure seat exists
             var seat = seats.FirstOrDefault(s => s.Id == dto.SeatId);
             if (seat == null)
             {
                 return BadRequest($"Seat with ID {dto.SeatId} does not exist.");
             }
 
-            // Prevent seat reassignment to already taken seat
             var conflictingTicket = tickets
                 .FirstOrDefault(t => t.SeatId == dto.SeatId && t.Showtime == dto.Showtime && t.Id != id);
             if (conflictingTicket != null)
@@ -131,7 +138,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
+        [Authorize(Roles = UserRoleNames.Admin)]
         public ActionResult DeleteTicket(int id)
         {
             var ticket = tickets.FirstOrDefault(x => x.Id == id);
@@ -144,6 +151,8 @@ namespace Selu383.SP25.P03.Api.Controllers
             if (seat != null)
             {
                 seat.IsReserved = false;
+                seat.ReservedByUserId = null;
+                seat.ReservedByGuestId = null;
             }
 
             tickets.Remove(ticket);

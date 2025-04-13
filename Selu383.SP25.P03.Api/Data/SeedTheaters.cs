@@ -10,60 +10,40 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using (var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                // Ensure Locations are already seeded
-                var downtown = context.Locations.FirstOrDefault(l => l.Name.Contains("New York"));
-                var uptown = context.Locations.FirstOrDefault(l => l.Name.Contains("New Orleans"));
+                var ny = context.Locations.FirstOrDefault(l => l.Name.Contains("New York"));
+                var no = context.Locations.FirstOrDefault(l => l.Name.Contains("New Orleans"));
+                var la = context.Locations.FirstOrDefault(l => l.Name.Contains("Los Angeles"));
 
-                // If locations are missing, throw an exception
-                if (downtown == null || uptown == null)
+                if (ny == null || no == null || la == null)
                 {
-                    throw new InvalidOperationException("Required locations are missing. Ensure SeedLocations.Initialize is called first.");
+                    throw new InvalidOperationException("Required locations are missing.");
                 }
 
-                // Remove invalid theaters (those with invalid LocationId)
-                var invalidTheaters = context.Theaters.Where(t => !context.Locations.Any(l => l.Id == t.LocationId)).ToList();
-                if (invalidTheaters.Any())
-                {
-                    context.Theaters.RemoveRange(invalidTheaters);
-                    context.SaveChanges();
-                }
-
-                // Clear existing theaters before reseeding
                 context.Theaters.RemoveRange(context.Theaters);
                 context.SaveChanges();
-
-                // Reset identity (SQL Server example)
                 context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Theaters', RESEED, 0)");
 
-                // Add new theaters connected to the correct Location Ids
-                context.Theaters.AddRange(
-                    new Theater
-                    {
-                        TheaterNumber = 1,
-                        SeatCount = 150,
-                        LocationId = downtown.Id
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 2,
-                        SeatCount = 200,
-                        LocationId = uptown.Id
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 3,
-                        SeatCount = 300,
-                        LocationId = downtown.Id
-                    },
-                    new Theater
-                    {
-                        TheaterNumber = 4,
-                        SeatCount = 75,
-                        LocationId = uptown.Id
-                    }
-                );
+                var theaters = new List<Theater>();
+                int seatCount = 150;
 
-                // Save changes to commit the new theaters to the database
+                void AddTheaters(Location loc)
+                {
+                    for (int i = 1; i <= 8; i++)
+                    {
+                        theaters.Add(new Theater
+                        {
+                            TheaterNumber = i,
+                            SeatCount = seatCount,
+                            LocationId = loc.Id
+                        });
+                    }
+                }
+
+                AddTheaters(ny);
+                AddTheaters(no);
+                AddTheaters(la);
+
+                context.Theaters.AddRange(theaters);
                 context.SaveChanges();
             }
         }

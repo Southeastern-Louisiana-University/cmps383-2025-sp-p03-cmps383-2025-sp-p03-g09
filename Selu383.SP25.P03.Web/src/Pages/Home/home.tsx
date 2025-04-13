@@ -27,19 +27,8 @@ interface Location {
   address: string;
 }
 
-const setCookie = (name: string, value: string, days: number) => {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-};
 
-const getCookie = (name: string): string | null => {
-  const cookies = document.cookie.split('; ').reduce((acc: any, cookie) => {
-    const [key, val] = cookie.split('=');
-    acc[key] = val;
-    return acc;
-  }, {});
-  return cookies[name] ? decodeURIComponent(cookies[name]) : null;
-};
+
 
 const styles = `
   :root {
@@ -216,14 +205,14 @@ const Home: React.FC = () => {
   const [posterUrls, setPosterUrls] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [, setSelectedLocation] = useState<Location | null>(null);
-  const [showLocationModal, setShowLocationModal] = useState(true);
+  const [showLocationModal, setShowLocationModal] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await fetch('/api/movies');
-        if (!response.ok) throw new Error('Failed to fetch movies');
+        const response = await fetch("/api/movies");
+        if (!response.ok) throw new Error("Failed to fetch movies");
         const data = await response.json();
         setMovies(data.slice(0, 3));
         setPosterUrls(data.map((m: Movie) => m.posterUrl).filter(Boolean));
@@ -231,28 +220,38 @@ const Home: React.FC = () => {
         console.error(err);
       }
     };
-
+  
     const fetchLocations = async () => {
       try {
-        const response = await fetch('/api/locations');
-        if (!response.ok) throw new Error('Failed to fetch locations');
+        const response = await fetch("/api/locations");
+        if (!response.ok) throw new Error("Failed to fetch locations");
         const data = await response.json();
         setLocations(data);
+  
+        const stored = localStorage.getItem("selectedLocation");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const valid = data.find((loc: Location) => loc.id === parsed.id);
+          if (valid) {
+            setSelectedLocation(valid);
+            setShowLocationModal(false);
+          } else {
+            console.warn("⚠️ Stale location ID. Clearing...");
+            localStorage.removeItem("selectedLocation");
+            setShowLocationModal(true);
+          }
+        } else {
+          setShowLocationModal(true);
+        }
       } catch (err) {
         console.error(err);
       }
     };
-
-    const stored = getCookie('selectedLocation');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setSelectedLocation(parsed);
-      setShowLocationModal(false);
-    }
-
+  
     fetchMovies();
     fetchLocations();
   }, []);
+  
 
   return (
     <>
@@ -269,8 +268,10 @@ const Home: React.FC = () => {
                     className="ticket-button w-full"
                     onClick={() => {
                       setSelectedLocation(loc);
-                      localStorage.setItem('selectedLocation', JSON.stringify(loc)); // optional
-                      setCookie('selectedLocation', JSON.stringify(loc), 30); // expires in 30 days
+                      localStorage.setItem('selectedLocation', JSON.stringify(loc));
+                      setShowLocationModal(false); // 👈 hide modal now that location is picked
+                      window.dispatchEvent(new Event('storage')); // trigger navbar to re-sync
+
                       setShowLocationModal(false);
                     }}
                   >

@@ -15,6 +15,7 @@ namespace Selu383.SP25.P03.Api.Features.Seats
         public bool IsReserved { get; set; }
         public int? ReservedByUserId { get; set; }
         public User? ReservedByUser { get; set; }
+        public string? ReservedByGuestId { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

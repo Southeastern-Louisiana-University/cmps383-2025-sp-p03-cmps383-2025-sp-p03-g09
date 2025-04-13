@@ -28,8 +28,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         // Get all seats for a specific theater
-        [HttpGet]
-        [Route("theater/{theaterId}")]
+        [HttpGet("theater/{theaterId}")]
         public async Task<ActionResult<List<SeatDto>>> GetSeatsByTheater(int theaterId)
         {
             var seatList = await seats
@@ -47,9 +46,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(seatList);
         }
 
-        // Get available seats in a theater
-        [HttpGet]
-        [Route("theater/{theaterId}/available")]
+        [HttpGet("theater/{theaterId}/available")]
         public async Task<ActionResult<List<SeatDto>>> GetAvailableSeats(int theaterId)
         {
             var availableSeats = await seats
@@ -66,16 +63,17 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(availableSeats);
         }
 
-        // Reserve a seat
-        [HttpPost]
-        [Route("{theaterId}/reserve")]
-        [Authorize]
+        // ✅ Reserve a seat (guest or user)
+        [HttpPost("{theaterId}/reserve")]
+        [AllowAnonymous]
         public async Task<ActionResult> ReserveSeat(int theaterId, [FromBody] SeatDto seatDto)
         {
             var currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var guestId = Request.Headers["X-Guest-ID"].ToString();
+
+            if (currentUser == null && string.IsNullOrWhiteSpace(guestId))
             {
-                return Unauthorized();
+                return Unauthorized("No user or guest ID provided.");
             }
 
             var seat = await seats
@@ -92,23 +90,34 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
 
             seat.IsReserved = true;
-            seat.ReservedByUserId = currentUser.Id;
+
+            if (currentUser != null)
+            {
+                seat.ReservedByUserId = currentUser.Id;
+                seat.ReservedByGuestId = null;
+            }
+            else
+            {
+                seat.ReservedByUserId = null;
+                seat.ReservedByGuestId = guestId;
+            }
 
             await dataContext.SaveChangesAsync();
 
             return Ok(new { Message = "Seat reserved successfully", SeatId = seat.Id });
         }
 
-        // Release a reserved seat
-        [HttpPost]
-        [Route("{theaterId}/release")]
-        [Authorize]
+        // ✅ Release a reserved seat
+        [HttpPost("{theaterId}/release")]
+        [AllowAnonymous]
         public async Task<ActionResult> ReleaseSeat(int theaterId, [FromBody] SeatDto seatDto)
         {
             var currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null)
+            var guestId = Request.Headers["X-Guest-ID"].ToString();
+
+            if (currentUser == null && string.IsNullOrWhiteSpace(guestId))
             {
-                return Unauthorized();
+                return Unauthorized("No user or guest ID provided.");
             }
 
             var seat = await seats
@@ -119,22 +128,26 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound("Seat does not exist.");
             }
 
-            if (!seat.IsReserved || seat.ReservedByUserId != currentUser.Id)
+            bool isOwner = currentUser != null
+                ? seat.ReservedByUserId == currentUser.Id
+                : seat.ReservedByGuestId == guestId;
+
+            if (!seat.IsReserved || !isOwner)
             {
-                return BadRequest("You can only release a seat you reserved.");
+                return BadRequest("You do not have permission to release this seat.");
             }
 
             seat.IsReserved = false;
             seat.ReservedByUserId = null;
+            seat.ReservedByGuestId = null;
 
             await dataContext.SaveChangesAsync();
 
             return Ok(new { Message = "Seat released successfully" });
         }
 
-        // Admin-only: Create new seats for a theater
-        [HttpPost]
-        [Route("theater/{theaterId}/add")]
+        // Admin: Add new seats manually
+        [HttpPost("theater/{theaterId}/add")]
         [Authorize(Roles = UserRoleNames.Admin)]
         public async Task<ActionResult> AddSeats(int theaterId, [FromBody] List<SeatDto> seatDtos)
         {

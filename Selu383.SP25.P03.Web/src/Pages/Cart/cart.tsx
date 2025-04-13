@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 
+if (!localStorage.getItem("guestId")) {
+  localStorage.setItem("guestId", crypto.randomUUID());
+}
+
 interface CartItem {
   id: number;
   name: string;
@@ -18,7 +22,6 @@ interface CartItem {
   };
 }
 
-
 const CartPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
@@ -30,9 +33,12 @@ const CartPage: React.FC = () => {
     calculateTotal(storedItems);
 
     fetch("/api/authentication/me", { credentials: "include" })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Not logged in");
+        return res.json();
+      })
       .then((user) => setUserId(user.id))
-      .catch((err) => console.error("❌ Failed to get user ID", err));
+      .catch(() => setUserId(null));
   }, []);
 
   const calculateTotal = (items: CartItem[]) => {
@@ -56,84 +62,86 @@ const CartPage: React.FC = () => {
     localStorage.removeItem("cartItems");
   };
 
-
   const handleConfirmPurchase = () => {
     if (cartItems.length === 0) {
       alert("Your cart is empty!");
       return;
     }
-  
-    if (!userId) {
-      alert("User not authenticated.");
-      return;
-    }
-  
-    console.log("🧨 Submitting order(s)...", cartItems);
-  
+
     const ticketItem = cartItems.find((item) => !item.food);
     if (!ticketItem) {
       alert("No ticket found in cart.");
       return;
     }
-  
+
     const foodItemIds = cartItems
       .filter((item) => item.food)
       .flatMap((item) => Array(item.quantity).fill(item.food!.id));
-  
-      const payload = {
-        foodItemIds,
-        price: totalPrice,
-        userId,
-        movieId: Number(ticketItem.movieId),
-        locationId: ticketItem.locationId,
-        showtime: ticketItem.showtime!,
-        ticketQuantity: ticketItem.quantity
-      };
-      
-  
-    console.log("📦 Payload:", payload);
-  
+
+    const payload: any = {
+      foodItemIds,
+      price: totalPrice,
+      movieId: Number(ticketItem.movieId),
+      locationId: ticketItem.locationId,
+      showtime: ticketItem.showtime!,
+      ticketQuantity: ticketItem.quantity,
+    };
+
+    if (userId) {
+      payload.userId = userId;
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (!userId) {
+      headers["X-Guest-ID"] = localStorage.getItem("guestId")!;
+    }
+
+    console.log("📦 Submitting order payload:", payload);
+
     fetch("/api/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       credentials: "include",
       body: JSON.stringify(payload),
     })
-    .then((res) => {
-      if (!res.ok) throw new Error("Order failed");
-      return res.json();
-    })
-    .then((data) => {
-      console.log("✅ Order placed successfully");
-    
-      const confirmationData = {
-        movieTitle: ticketItem.name,
-        showtime: ticketItem.showtime,
-        theaterId: data.theaterId,
-        seatIds: data.seatIds, // 👈✅ Now supports multiple seats
-        foodItems: cartItems
-          .filter((item) => item.food)
-          .map((item) => ({
-            name: item.food!.name,
-            price: item.food!.price,
-            quantity: item.quantity,
-          })),
-        totalPrice,
-      };
-    
-      localStorage.setItem("lastConfirmedOrder", JSON.stringify(confirmationData));
-      localStorage.removeItem("cartItems");
-    
-      window.location.href = "/purchase/confirmation";
-    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Order failed");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("✅ Order placed successfully");
+
+        const confirmationData = {
+          movieTitle: ticketItem.name,
+          showtime: ticketItem.showtime,
+          theaterId: data.theaterId,
+          seatIds: data.seatIds,
+          foodItems: cartItems
+            .filter((item) => item.food)
+            .map((item) => ({
+              name: item.food!.name,
+              price: item.food!.price,
+              quantity: item.quantity,
+            })),
+          totalPrice,
+        };
+
+        localStorage.setItem(
+          "lastConfirmedOrder",
+          JSON.stringify(confirmationData)
+        );
+        localStorage.removeItem("cartItems");
+
+        window.location.href = "/purchase/confirmation";
+      })
       .catch((err) => {
         console.error("❌ Error confirming purchase:", err);
         alert("Error confirming purchase.");
       });
   };
-  
-  
-  
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -148,8 +156,9 @@ const CartPage: React.FC = () => {
           flex-direction: column;
           align-items: center;
         }
-          .cart-item-details span {
-            color: #10b981;
+
+        .cart-item-details span {
+          color: #10b981;
         }
 
         .cart-box {
