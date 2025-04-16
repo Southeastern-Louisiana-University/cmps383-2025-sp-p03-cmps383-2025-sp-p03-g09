@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Selu383.SP25.P03.Api.Data;
 
@@ -11,9 +12,11 @@ using Selu383.SP25.P03.Api.Data;
 namespace Selu383.SP25.P03.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250407010137_SeatsUpdate")]
+    partial class SeatsUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -236,16 +239,10 @@ namespace Selu383.SP25.P03.Api.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("PurchaseTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("SeatId")
                         .HasColumnType("int");
 
                     b.Property<int>("TheaterId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TicketId")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -256,8 +253,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.HasIndex("SeatId");
 
                     b.HasIndex("TheaterId");
-
-                    b.HasIndex("TicketId");
 
                     b.HasIndex("UserId");
 
@@ -590,12 +585,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Selu383.SP25.P03.Api.Features.Tickets.Ticket", "Ticket")
-                        .WithMany()
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Selu383.SP25.P03.Api.Features.Users.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
@@ -605,8 +594,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.Navigation("Seat");
 
                     b.Navigation("Theater");
-
-                    b.Navigation("Ticket");
 
                     b.Navigation("User");
                 });

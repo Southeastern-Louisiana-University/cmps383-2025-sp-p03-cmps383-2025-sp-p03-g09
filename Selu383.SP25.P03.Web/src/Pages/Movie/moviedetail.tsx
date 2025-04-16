@@ -47,7 +47,7 @@ const styles = `
   }
 
   .ticket-button:hover {
-    background-color: #cc0000;
+    background-color: #10b981;
     transform: translateY(-2px);
   }
 
@@ -88,6 +88,14 @@ const styles = `
     font-weight: bold;
     color: var(--accent-color);
     margin-right: 4px;
+  }
+
+  .youtube-trailer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 2rem 0;
   }
 
   .youtube-trailer {
@@ -174,7 +182,7 @@ const MovieDetail: React.FC = () => {
               </div>
 
               {movie.youtubeUrl && (
-                <div className="flex justify-center px-4 pb-10">
+                <div className="youtube-trailer-container">
                   <iframe
                     className="youtube-trailer"
                     src={convertToEmbedUrl(movie.youtubeUrl)}

@@ -58,9 +58,7 @@ const styles = `
   }
 
   .login-button:hover {
-    background-color: #468973;
-    color: #ffffff; 
-    text-shadow: 0 0 2px rgba(255,255,255,0.3); 
+    background-color: #10b981;
   }
 
   @keyframes fadeIn {
@@ -97,7 +95,7 @@ const Login: React.FC = () => {
     <>
       <style>{styles}</style>
       <div className="login-container">
-        <h1 className="login-title">Cinema Login</h1>
+        <h1 className="login-title">Lion's Den Login</h1>
         <form onSubmit={handleLogin}>
           <input
             className="input-field"

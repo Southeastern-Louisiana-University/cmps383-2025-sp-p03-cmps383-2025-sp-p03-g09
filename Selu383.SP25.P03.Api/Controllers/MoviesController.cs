@@ -20,16 +20,16 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<MovieDto> GetAllMovies()
+        public IQueryable<MovieDto> GetAllMovies()
         {
-            return GetMovieDtos(movies.ToList());
+            return GetMovieDtos(movies);
         }
 
         [HttpGet]
         [Route("{id}")]
         public ActionResult<MovieDto> GetMovieById(int id)
         {
-            var result = GetMovieDtos(movies.Where(x => x.Id == id).ToList()).FirstOrDefault();
+            var result = GetMovieDtos(movies.Where(x => x.Id == id)).FirstOrDefault();
             if (result == null)
             {
                 return NotFound();
@@ -125,7 +125,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                    dto.ReleaseDate == default;
         }
 
-        private static IEnumerable<MovieDto> GetMovieDtos(IEnumerable<Movie> movies)
+        private static IQueryable<MovieDto> GetMovieDtos(IQueryable<Movie> movies)
         {
             return movies
                 .Select(x => new MovieDto

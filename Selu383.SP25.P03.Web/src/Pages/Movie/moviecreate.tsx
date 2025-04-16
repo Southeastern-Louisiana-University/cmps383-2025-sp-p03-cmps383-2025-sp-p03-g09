@@ -124,7 +124,7 @@ const MovieCreate: React.FC = () => {
           font-size: 16px;
         }
         .submit-btn:hover {
-          background-color: #468973;
+          background-color: #10b981;
         }
         .error {
           text-align: center;
