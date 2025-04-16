@@ -110,7 +110,7 @@ const CreateFood: React.FC = () => {
           text-align: center;
           font-size: 28px;
           margin-bottom: 20px;
-          color: #10b981;
+          color: #ff0000;
         }
         .input-group {
           margin-bottom: 16px;
@@ -140,7 +140,7 @@ const CreateFood: React.FC = () => {
         .submit-btn {
           width: 100%;
           padding: 12px;
-          background-color: #10b981;
+          background-color: #ff0000;
           color: white;
           font-weight: bold;
           border: none;
@@ -149,7 +149,7 @@ const CreateFood: React.FC = () => {
           font-size: 16px;
         }
         .submit-btn:hover {
-          background-color: #468973;
+          background-color: #cc0000;
         }
         .error {
           text-align: center;
