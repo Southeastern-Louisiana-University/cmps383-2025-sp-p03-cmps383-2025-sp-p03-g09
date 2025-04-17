@@ -10,6 +10,7 @@ namespace Selu383.SP25.P03.Api.Features.Orders
 
         public int? UserId { get; set; }
         public int TheaterId { get; set; }
+
         public int SeatId { get; set; }
 
         public int TicketId { get; set; }
@@ -17,6 +18,8 @@ namespace Selu383.SP25.P03.Api.Features.Orders
         public DateTime PurchaseTime { get; set; }
 
         public List<int> FoodItemIds { get; set; } = new();
+
+        public List<int> SeatIds { get; set; } = new();
 
         public string MovieTitle { get; set; }
         public string LocationName { get; set; }

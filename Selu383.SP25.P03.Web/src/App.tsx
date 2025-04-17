@@ -15,6 +15,7 @@ import PurchaseHistory from "./Pages/Purchase/PurchaseHistory";
 import FoodCreate from './Pages/Food/foodcreate';
 import MovieEdit from './Pages/Movie/movieedit';
 import FoodEdit from './Pages/Food/foodedit';
+import SeatTest from './Pages/Purchase/SeatTest';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/food/create" element={<FoodCreate />} />
         <Route path="/movies/:id/edit" element={<MovieEdit />} />
         <Route path="/food/:id/edit" element={<FoodEdit />} />
+        <Route path="/seat-test" element={<SeatTest />} />
       </Routes>
     </Router>
   );

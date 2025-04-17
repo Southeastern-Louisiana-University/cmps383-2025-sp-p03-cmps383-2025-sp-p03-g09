@@ -6,6 +6,7 @@ using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Seats;
 using Selu383.SP25.P03.Api.Features.Theaters;
 using Selu383.SP25.P03.Api.Features.Users;
+using Selu383.SP25.P03.Api.Features.Tickets;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,18 +20,24 @@ namespace Selu383.SP25.P03.Api.Controllers
         private readonly DataContext dataContext;
         private readonly UserManager<User> userManager;
         private readonly DbSet<Seat> seats;
+        private readonly DbSet<Ticket> tickets;
 
         public SeatController(DataContext dataContext, UserManager<User> userManager)
         {
             this.dataContext = dataContext;
             this.userManager = userManager;
             seats = dataContext.Set<Seat>();
+            tickets = dataContext.Set<Ticket>();
         }
 
-        // Get all seats for a specific theater
         [HttpGet("theater/{theaterId}")]
         public async Task<ActionResult<List<SeatDto>>> GetSeatsByTheater(int theaterId)
         {
+            var soldSeatIds = await tickets
+                .Where(t => t.TheaterId == theaterId)
+                .Select(t => t.SeatId)
+                .ToListAsync();
+
             var seatList = await seats
                 .Where(s => s.TheaterId == theaterId)
                 .Select(s => new SeatDto
@@ -38,7 +45,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Id = s.Id,
                     Row = s.Row,
                     Column = s.Column,
-                    IsReserved = s.IsReserved,
+                    IsReserved = soldSeatIds.Contains(s.Id),
                     ReservedByUserId = s.ReservedByUserId
                 })
                 .ToListAsync();
@@ -49,21 +56,25 @@ namespace Selu383.SP25.P03.Api.Controllers
         [HttpGet("theater/{theaterId}/available")]
         public async Task<ActionResult<List<SeatDto>>> GetAvailableSeats(int theaterId)
         {
+            var soldSeatIds = await tickets
+                .Where(t => t.TheaterId == theaterId)
+                .Select(t => t.SeatId)
+                .ToListAsync();
+
             var availableSeats = await seats
-                .Where(s => s.TheaterId == theaterId && !s.IsReserved)
+                .Where(s => s.TheaterId == theaterId && !soldSeatIds.Contains(s.Id))
                 .Select(s => new SeatDto
                 {
                     Id = s.Id,
                     Row = s.Row,
                     Column = s.Column,
-                    IsReserved = s.IsReserved
+                    IsReserved = false
                 })
                 .ToListAsync();
 
             return Ok(availableSeats);
         }
 
-        // ✅ Reserve a seat (guest or user)
         [HttpPost("{theaterId}/reserve")]
         [AllowAnonymous]
         public async Task<ActionResult> ReserveSeat(int theaterId, [FromBody] SeatDto seatDto)
@@ -84,12 +95,11 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound("Seat does not exist.");
             }
 
-            if (seat.IsReserved)
+            var alreadyTaken = await tickets.AnyAsync(t => t.SeatId == seat.Id);
+            if (alreadyTaken)
             {
-                return BadRequest("Seat is already reserved.");
+                return BadRequest("Seat has already been purchased.");
             }
-
-            seat.IsReserved = true;
 
             if (currentUser != null)
             {
@@ -107,7 +117,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(new { Message = "Seat reserved successfully", SeatId = seat.Id });
         }
 
-        // ✅ Release a reserved seat
         [HttpPost("{theaterId}/release")]
         [AllowAnonymous]
         public async Task<ActionResult> ReleaseSeat(int theaterId, [FromBody] SeatDto seatDto)
@@ -132,12 +141,11 @@ namespace Selu383.SP25.P03.Api.Controllers
                 ? seat.ReservedByUserId == currentUser.Id
                 : seat.ReservedByGuestId == guestId;
 
-            if (!seat.IsReserved || !isOwner)
+            if (!isOwner)
             {
                 return BadRequest("You do not have permission to release this seat.");
             }
 
-            seat.IsReserved = false;
             seat.ReservedByUserId = null;
             seat.ReservedByGuestId = null;
 
@@ -146,7 +154,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(new { Message = "Seat released successfully" });
         }
 
-        // Admin: Add new seats manually
         [HttpPost("theater/{theaterId}/add")]
         [Authorize(Roles = UserRoleNames.Admin)]
         public async Task<ActionResult> AddSeats(int theaterId, [FromBody] List<SeatDto> seatDtos)

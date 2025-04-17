@@ -10,7 +10,10 @@ interface CartItem {
   name: string;
   quantity: number;
   price: number;
-  seatId?: number;
+  seatIds?: number[];
+  seats?: { id: number; row: string; column: number }[];
+  row?: string;
+  column?: number;
   theaterId?: number;
   movieId?: number;
   locationId?: number;
@@ -29,9 +32,22 @@ const CartPage: React.FC = () => {
 
   useEffect(() => {
     const storedItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    setCartItems(storedItems);
-    calculateTotal(storedItems);
-
+  
+    const enriched = storedItems
+      .filter((item: any) => item.name && item.price && item.quantity)
+      .map((item: any) => {
+        if (item.seatId && item.row && item.column) {
+          return {
+            ...item,
+            seats: [{ id: item.seatId, row: item.row, column: item.column }],
+          };
+        }
+        return item;
+      });
+  
+    setCartItems(enriched);
+    calculateTotal(enriched);
+  
     fetch("/api/authentication/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Not logged in");
@@ -40,6 +56,21 @@ const CartPage: React.FC = () => {
       .then((user) => setUserId(user.id))
       .catch(() => setUserId(null));
   }, []);
+  
+
+  const rowToLetter = (row: string | number): string => {
+    const num = typeof row === "string" ? parseInt(row, 10) : row;
+    if (isNaN(num) || num <= 0) return "?";
+    let result = "";
+    let n = num;
+    while (n > 0) {
+      n--;
+      result = String.fromCharCode((n % 26) + 65) + result;
+      n = Math.floor(n / 26);
+    }
+    return result;
+  };
+  
 
   const calculateTotal = (items: CartItem[]) => {
     const total = items.reduce(
@@ -83,8 +114,13 @@ const CartPage: React.FC = () => {
       price: totalPrice,
       movieId: Number(ticketItem.movieId),
       locationId: ticketItem.locationId,
+      theaterId: ticketItem.theaterId,
       showtime: ticketItem.showtime!,
       ticketQuantity: ticketItem.quantity,
+      seatIds:
+  ticketItem.seatIds ||
+  (Array.isArray(ticketItem.seats) ? ticketItem.seats.map((s) => s.id) : []),
+
     };
 
     if (userId) {
@@ -99,7 +135,7 @@ const CartPage: React.FC = () => {
       headers["X-Guest-ID"] = localStorage.getItem("guestId")!;
     }
 
-    console.log("📦 Submitting order payload:", payload);
+    console.log("Submitting order payload:", payload);
 
     fetch("/api/orders", {
       method: "POST",
@@ -112,12 +148,12 @@ const CartPage: React.FC = () => {
         return res.json();
       })
       .then((data) => {
-        console.log("✅ Order placed successfully");
+        console.log("Order placed successfully");
 
         const confirmationData = {
           movieTitle: ticketItem.name,
           showtime: ticketItem.showtime,
-          theaterId: data.theaterId,
+          theaterId: data.theater?.theaterNumber ?? data.theaterId,
           seatIds: data.seatIds,
           foodItems: cartItems
             .filter((item) => item.food)
@@ -127,18 +163,31 @@ const CartPage: React.FC = () => {
               quantity: item.quantity,
             })),
           totalPrice,
+          ticket: data.ticket, 
         };
+        
 
         localStorage.setItem(
           "lastConfirmedOrder",
           JSON.stringify(confirmationData)
         );
-        localStorage.removeItem("cartItems");
 
+        if (!userId) {
+          const guestHistory = JSON.parse(
+            localStorage.getItem("guestOrderHistory") || "[]"
+          );
+          guestHistory.push(confirmationData);
+          localStorage.setItem(
+            "guestOrderHistory",
+            JSON.stringify(guestHistory)
+          );
+        }
+
+        localStorage.removeItem("cartItems");
         window.location.href = "/purchase/confirmation";
       })
       .catch((err) => {
-        console.error("❌ Error confirming purchase:", err);
+        console.error("Error confirming purchase:", err);
         alert("Error confirming purchase.");
       });
   };
@@ -146,7 +195,6 @@ const CartPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
-
       <style>{`
         .cart-container {
           max-width: 700px;
@@ -155,10 +203,6 @@ const CartPage: React.FC = () => {
           display: flex;
           flex-direction: column;
           align-items: center;
-        }
-
-        .cart-item-details span {
-          color: #10b981;
         }
 
         .cart-box {
@@ -183,6 +227,10 @@ const CartPage: React.FC = () => {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        .cart-item-details span {
+          color: #10b981;
         }
 
         .remove-button {
@@ -247,11 +295,42 @@ const CartPage: React.FC = () => {
               {cartItems.map((item) => (
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-details">
-                    <span>
-                      {item.name} x {item.quantity}
-                    </span>
-                    <span>${(item.price * item.quantity).toFixed(2)}</span>
-                  </div>
+  <div className="text-white font-medium">
+    {item.food
+      ? `${item.name} x${item.quantity}`
+      : item.name.replace(/ - Seat [A-Z]+\d+$/, "")}
+  </div>
+
+  {!item.food && Array.isArray(item.seats) && item.seats.length === 1 && (
+    <div>Seat: {rowToLetter(item.seats[0].row)}{item.seats[0].column}</div>
+  )}
+
+  {!item.food && Array.isArray(item.seats) && item.seats.length > 1 && (
+    <div>Seats: {item.seats.map(s => `${rowToLetter(s.row)}${s.column}`).join(", ")}</div>
+  )}
+
+  {!item.food && item.theaterId && (
+    <div>Theater: {item.theaterId}</div>
+  )}
+
+  {!item.food && item.showtime && (
+    <div>
+      Showtime:{" "}
+      {new Date(item.showtime).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })}
+    </div>
+  )}
+
+  <div className="text-green-400 font-semibold mt-1">
+    ${ (item.price * item.quantity).toFixed(2) }
+  </div>
+</div>
+
                   <button
                     className="remove-button"
                     onClick={() => handleRemoveItem(item.id)}

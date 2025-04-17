@@ -17,21 +17,20 @@ namespace Selu383.SP25.P03.Api.Data
 
                 foreach (var theater in theaters)
                 {
-                    int totalSeats = theater.SeatCount;
-                    int rows = (int)Math.Sqrt(totalSeats);
-                    int cols = (int)Math.Ceiling((double)totalSeats / rows);
-
+                    var seatLayout = new List<int> { 9, 11, 13, 13, 13, 13, 13, 13 };
                     var seats = new List<Seat>();
-                    for (int row = 1; row <= rows; row++)
-                    {
-                        for (int col = 1; col <= cols; col++)
-                        {
-                            if (seats.Count >= totalSeats) break;
 
+                    for (int i = 0; i < seatLayout.Count; i++)
+                    {
+                        int rowIndex = i + 1;
+                        int columns = seatLayout[i];
+
+                        for (int col = 1; col <= columns; col++)
+                        {
                             seats.Add(new Seat
                             {
                                 TheaterId = theater.Id,
-                                Row = row,
+                                Row = rowIndex,
                                 Column = col,
                                 IsReserved = false
                             });

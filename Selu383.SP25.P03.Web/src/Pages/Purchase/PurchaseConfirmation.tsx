@@ -15,7 +15,14 @@ const PurchaseConfirmation: React.FC = () => {
   useEffect(() => {
     const data = localStorage.getItem("lastConfirmedOrder");
     if (data) {
-      setConfirmationData(JSON.parse(data));
+      try {
+        const parsed = JSON.parse(data);
+        console.log("confirmationData loaded:", parsed);
+        setConfirmationData(parsed);
+      } catch (err) {
+        console.error("Failed to parse confirmation data:", err);
+        navigate("/");
+      }
     } else {
       navigate("/");
     }
@@ -30,7 +37,32 @@ const PurchaseConfirmation: React.FC = () => {
     seatIds,
     foodItems,
     totalPrice,
+    ticket
   } = confirmationData;
+
+  const safeTitle =
+  (movieTitle?.replace(/ - Seat [A-Z]+\d+$/, "")) ||
+  ticket?.movie?.title ||
+  "Unknown Movie";
+
+const safeShowtime = new Date(ticket?.showtime || showtime).toLocaleString("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+const safeTheater = ticket?.theater?.theaterNumber || ticket?.theaterId || theaterId || "Unknown";
+const seatLabelMatch = movieTitle?.match(/ - Seat ([A-Z]+\d+)$/);
+const safeSeats = seatLabelMatch ? seatLabelMatch[1] : "N/A";
+
+
+
+
+const safeTotal = typeof totalPrice === "number" ? totalPrice.toFixed(2) : "N/A";
+
+
+
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -93,17 +125,15 @@ const PurchaseConfirmation: React.FC = () => {
         <div className="confirmation-box">
           <h1>Purchase Confirmed!</h1>
 
-          <p><strong>Movie:</strong> {movieTitle}</p>
-          <p><strong>Showtime:</strong> {showtime}</p>
-          <p><strong>Theater:</strong> {theaterId}</p>
+          <div className="mb-3">
+  <div><strong>Movie:</strong> {safeTitle}</div>
+  <div><strong>Seat:</strong> {safeSeats}</div>
+  <div><strong>Theater:</strong> {safeTheater}</div>
+  <div><strong>Showtime:</strong> {safeShowtime}</div>
+</div>
 
-          {seatIds && seatIds.length > 0 && (
-            <p>
-              <strong>Seats Assigned:</strong> {seatIds.join(", ")}
-            </p>
-          )}
 
-          {foodItems && foodItems.length > 0 && (
+          {Array.isArray(foodItems) && foodItems.length > 0 && (
             <div>
               <strong>Food:</strong>
               <ul className="food-list">
@@ -117,7 +147,7 @@ const PurchaseConfirmation: React.FC = () => {
             </div>
           )}
 
-          <p><strong>Total Paid:</strong> ${totalPrice.toFixed(2)}</p>
+          <p><strong>Total Paid:</strong> ${safeTotal}</p>
 
           <button onClick={() => navigate("/")} className="back-button">
             Back to Home
