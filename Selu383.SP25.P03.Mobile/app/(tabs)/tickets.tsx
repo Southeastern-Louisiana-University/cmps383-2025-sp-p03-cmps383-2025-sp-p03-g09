@@ -1,222 +1,348 @@
-// tickets.tsx - This will be your tickets tab screen
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
-import { ThemedView } from '@/components/ThemedView';
+// app/movie/[id]/purchase.tsx
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
-// Ticket data type
-interface Ticket {
-  id: string;
-  movieTitle: string;
-  date: string;
-  time: string;
-  seats: string[];
-  confirmationCode: string;
-}
+// Mock data directly in component to avoid loading delay
+const MOVIE_DATA = {
+  '1': {
+    id: '1',
+    title: 'Captain America: Brave New World',
+    posterUrl: 'https://i.imgur.com/kpvUnbB.jpeg',
+    description: 'A thief who steals corporate secrets through dream-sharing technology. After meeting with newly elected U.S. President Thaddeus Ross, Sam finds himself in the middle of an international incident...',
+    duration: 119,
+    rating: 'PG-13',
+  },
+  '2': {
+    id: '2',
+    title: 'Novocaine',
+    posterUrl: 'https://i.imgur.com/lvhe19y.jpeg',
+    description: 'When the girl of his dreams is kidnapped, everyman Nate turns his inability to feel pain into an unexpected strength in his fight to get her back.',
+    duration: 109,
+    rating: 'R',
+  },
+  '3': {
+    id: '3',
+    title: 'Snow White',
+    posterUrl: 'https://i.imgur.com/xCNOH4U.jpeg',
+    description: 'Princess Snow White flees the castle when the Evil Queen, in her jealousy over Snow White\'s inner beauty, tries to kill her...',
+    duration: 109,
+    rating: 'PG',
+  }
+};
 
-// Sample data - replace with your API call or local storage retrieval
-const SAMPLE_TICKETS: Ticket[] = [
+const FOOD_ITEMS = [
   {
     id: '1',
-    movieTitle: 'Interstellar',
-    date: '2025-03-25',
-    time: '7:30 PM',
-    seats: ['D4', 'D5'],
-    confirmationCode: 'INT78945'
+    name: 'Popcorn',
+    price: 5.99,
+    imageUrl: 'https://i.imgur.com/NUyttbn.jpg',
   },
   {
     id: '2',
-    movieTitle: 'The Dark Knight',
-    date: '2025-04-02',
-    time: '8:45 PM',
-    seats: ['F7', 'F8', 'F9'],
-    confirmationCode: 'DKN12456'
+    name: 'Nachos',
+    price: 6.99,
+    imageUrl: 'https://i.imgur.com/Hq6HFSS.jpg',
   },
-  // Add more tickets as needed
+  {
+    id: '3',
+    name: 'Soft Pretzel',
+    price: 4.99,
+    imageUrl: 'https://i.imgur.com/8FKG8on.jpg',
+  }
 ];
 
-export default function TicketsScreen() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function PurchaseScreen() {
+  const params = useLocalSearchParams();
+  const { id = '1', showtime = '12:00PM' } = params;
+  
+  // Get movie data directly from our static data
+  const movie = MOVIE_DATA[id as keyof typeof MOVIE_DATA] || MOVIE_DATA['1'];
+  const location = "Lion's Den Los Angeles";
+  
+  const [ticketCount, setTicketCount] = useState(1);
+  const [ticketPrice] = useState(12.99);
+  const [cart, setCart] = useState<{itemId: string, quantity: number}[]>([]);
 
-  useEffect(() => {
-    // In a real app, fetch from an API or local storage
-    // For now, use sample data
-    setTimeout(() => {
-      setTickets(SAMPLE_TICKETS);
-      setLoading(false);
-    }, 1000); // Simulate loading delay
-  }, []);
-
-  const renderTicket = ({ item }: { item: Ticket }) => {
-    // Format date nicely
-    const date = new Date(item.date);
-    const formattedDate = date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
+  const handleAddToCart = (itemId: string) => {
+    const existingItem = cart.find(item => item.itemId === itemId);
+    
+    if (existingItem) {
+      // Update quantity if item already in cart
+      setCart(cart.map(item => 
+        item.itemId === itemId 
+          ? {...item, quantity: item.quantity + 1}
+          : item
+      ));
+    } else {
+      // Add new item to cart
+      setCart([...cart, {itemId, quantity: 1}]);
+    }
+  };
+  
+  const calculateTotal = () => {
+    let total = ticketCount * ticketPrice;
+    
+    cart.forEach(cartItem => {
+      const item = FOOD_ITEMS.find(food => food.id === cartItem.itemId);
+      if (item) {
+        total += item.price * cartItem.quantity;
+      }
     });
-
-    return (
-      <TouchableOpacity
-        style={styles.ticketCard}>
-        <ThemedView style={styles.ticketHeader}>
-          <ThemedText type="defaultSemiBold" numberOfLines={1} style={styles.movieTitle}>
-            {item.movieTitle}
-          </ThemedText>
-          <IconSymbol name="ticket" size={24} color="#A1CEDC" />
-        </ThemedView>
-
-        <ThemedView style={styles.ticketDetails}>
-          <ThemedView style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Date:</ThemedText>
-            <ThemedText style={styles.detailValue}>{formattedDate}</ThemedText>
-          </ThemedView>
-
-          <ThemedView style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Time:</ThemedText>
-            <ThemedText style={styles.detailValue}>{item.time}</ThemedText>
-          </ThemedView>
-
-          <ThemedView style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Seats:</ThemedText>
-            <ThemedText style={styles.detailValue}>{item.seats.join(', ')}</ThemedText>
-          </ThemedView>
-
-          <ThemedView style={styles.confirmationRow}>
-            <ThemedText style={styles.confirmationLabel}>Confirmation:</ThemedText>
-            <ThemedText type="defaultSemiBold" style={styles.confirmationCode}>
-              {item.confirmationCode}
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-      </TouchableOpacity>
-    );
+    
+    return total.toFixed(2);
+  };
+  
+  const increaseTickets = () => {
+    setTicketCount(prev => prev + 1);
+  };
+  
+  const decreaseTickets = () => {
+    if (ticketCount > 1) {
+      setTicketCount(prev => prev - 1);
+    }
+  };
+  
+  const clearCart = () => {
+    setCart([]);
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <ThemedText type="title" style={styles.headerTitle}>My Tickets</ThemedText>
-      }>
-      <ThemedView style={styles.container}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : tickets.length > 0 ? (
-          <FlatList
-            data={tickets}
-            renderItem={renderTicket}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.ticketList}
-          />
-        ) : (
-          <ThemedView style={styles.emptyContainer}>
-            <IconSymbol name="ticket" size={64} color="#ccc" />
-            <ThemedText type="subtitle" style={styles.emptyText}>
-              No tickets yet
-            </ThemedText>
-            <TouchableOpacity 
-              style={styles.browseButton}
-            >
-              <ThemedText style={styles.browseButtonText}>Browse Movies</ThemedText>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <IconSymbol name="arrow.left" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <ThemedText style={styles.headerTitle}>Your Cart</ThemedText>
+      </View>
+      
+      {cart.length > 0 && (
+        <TouchableOpacity style={styles.clearCartButton} onPress={clearCart}>
+          <Text style={styles.clearCartText}>Clear Cart</Text>
+        </TouchableOpacity>
+      )}
+      
+      <View style={styles.section}>
+        <ThemedText style={styles.sectionTitle}>Ticket Details</ThemedText>
+        
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Movie:</Text>
+          <Text style={styles.detailValue}>{movie.title}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Location:</Text>
+          <Text style={styles.detailValue}>{location}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Showtime:</Text>
+          <Text style={styles.detailValue}>{showtime}</Text>
+        </View>
+        
+        <View style={styles.ticketSelector}>
+          <Text style={styles.detailLabel}>Tickets:</Text>
+          <View style={styles.quantitySelector}>
+            <TouchableOpacity onPress={decreaseTickets} style={styles.quantityButton}>
+              <Text style={styles.quantityButtonText}>-</Text>
             </TouchableOpacity>
-          </ThemedView>
-        )}
-      </ThemedView>
-    </ParallaxScrollView>
+            <Text style={styles.quantityText}>{ticketCount}</Text>
+            <TouchableOpacity onPress={increaseTickets} style={styles.quantityButton}>
+              <Text style={styles.quantityButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Ticket Price:</Text>
+          <Text style={styles.detailValue}>${ticketPrice.toFixed(2)}</Text>
+        </View>
+      </View>
+      
+      <View style={styles.section}>
+        <ThemedText style={styles.sectionTitle}>Want to add some food?</ThemedText>
+        
+        {FOOD_ITEMS.map((item) => (
+          <View key={item.id} style={styles.foodItem}>
+            <Image 
+              source={{ uri: item.imageUrl }}
+              defaultSource={require('@/assets/images/partial-react-logo.png')}
+              style={styles.foodImage}
+            />
+            <View style={styles.foodInfo}>
+              <Text style={styles.foodName}>{item.name}</Text>
+              <Text style={styles.foodPrice}>${item.price.toFixed(2)}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddToCart(item.id)}
+            >
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+      
+      <View style={styles.totalSection}>
+        <ThemedText style={styles.totalText}>Total: ${calculateTotal()}</ThemedText>
+        <TouchableOpacity style={styles.checkoutButton}>
+          <Text style={styles.checkoutButtonText}>Add to Cart</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: '#121212',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+    backgroundColor: '#1A1A1A',
+  },
+  backButton: {
+    padding: 8,
   },
   headerTitle: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    fontSize: 28,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginLeft: 16,
   },
-  ticketList: {
-    padding: 4,
+  clearCartButton: {
+    backgroundColor: '#2A2A2A',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginLeft: 16,
+    marginTop: 16,
   },
-  ticketCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  clearCartText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
-  ticketHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#000000',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  movieTitle: {
-    flex: 1,
-    fontSize: 16,
-  },
-  ticketDetails: {
+  section: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 8,
+    margin: 16,
     padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 16,
   },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   detailLabel: {
-    width: 60,
-    color: '#666',
+    color: '#BBBBBB',
+    fontSize: 16,
   },
   detailValue: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
     flex: 1,
+    textAlign: 'right',
   },
-  confirmationRow: {
+  ticketSelector: {
     flexDirection: 'row',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  confirmationLabel: {
-    width: 100,
-    color: '#666',
+  quantitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  confirmationCode: {
-    flex: 1,
-    color: '#A1CEDC',
-  },
-  emptyContainer: {
-    flex: 1,
+  quantityButton: {
+    backgroundColor: '#10b981',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
-  emptyText: {
-    marginTop: 16,
-    marginBottom: 24,
-    color: '#888',
-  },
-  browseButton: {
-    backgroundColor: '#A1CEDC',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  browseButtonText: {
+  quantityButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+  },
+  quantityText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginHorizontal: 12,
+  },
+  foodItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  foodImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 6,
+    backgroundColor: '#2A2A2A',
+  },
+  foodInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  foodName: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  foodPrice: {
+    color: '#10b981',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  addButton: {
+    backgroundColor: '#10b981',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  totalSection: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 8,
+    margin: 16,
+    padding: 16,
+    marginBottom: 32,
+  },
+  totalText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 16,
+  },
+  checkoutButton: {
+    backgroundColor: '#10b981',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  checkoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
