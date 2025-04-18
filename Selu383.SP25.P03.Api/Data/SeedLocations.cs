@@ -9,11 +9,12 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>());
 
-            context.Tickets.RemoveRange(context.Tickets);
+            context.Database.ExecuteSqlRaw("DELETE FROM Tickets");
             context.SaveChanges();
 
             context.Locations.RemoveRange(context.Locations);
             context.SaveChanges();
+            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Locations', RESEED, 0)");
 
             context.Locations.AddRange(
                 new Location

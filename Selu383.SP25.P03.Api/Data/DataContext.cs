@@ -115,7 +115,8 @@ namespace Selu383.SP25.P03.Api.Data
 
 
 
-            builder.Entity<OrderFoodItem>().HasKey(ofi => new { ofi.OrderId, ofi.FoodItemId });
+            builder.Entity<OrderFoodItem>()
+                .HasKey(ofi => ofi.Id);
 
             builder.Entity<OrderFoodItem>()
                 .HasOne(ofi => ofi.Order)

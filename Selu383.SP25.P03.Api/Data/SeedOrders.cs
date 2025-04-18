@@ -10,16 +10,14 @@ namespace Selu383.SP25.P03.Api.Data
         {
             using var context = new DataContext(serviceProvider.GetRequiredService<DbContextOptions<DataContext>>());
 
-            // Kill all linked entities
             context.Payments.RemoveRange(context.Payments);
             context.OrderFoodItems.RemoveRange(context.OrderFoodItems);
             context.Orders.RemoveRange(context.Orders);
             context.SaveChanges();
 
-            // Reset identity to start from 0
             context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Orders', RESEED, 0)");
 
-            Console.WriteLine("💥 Orders wiped and identity reseeded to 0.");
+            Console.WriteLine("Orders wiped and identity reseeded to 0.");
         }
     }
 }

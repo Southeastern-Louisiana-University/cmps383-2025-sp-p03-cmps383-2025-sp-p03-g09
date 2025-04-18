@@ -8,6 +8,19 @@ interface FoodItem {
   quantity: number;
 }
 
+const rowToLetter = (row: string | number): string => {
+  const num = typeof row === "string" ? parseInt(row, 10) : row;
+  if (isNaN(num) || num <= 0) return "?";
+  let result = "";
+  let n = num;
+  while (n > 0) {
+    n--;
+    result = String.fromCharCode((n % 26) + 65) + result;
+    n = Math.floor(n / 26);
+  }
+  return result;
+};
+
 const PurchaseConfirmation: React.FC = () => {
   const navigate = useNavigate();
   const [confirmationData, setConfirmationData] = useState<any>(null);
@@ -15,7 +28,14 @@ const PurchaseConfirmation: React.FC = () => {
   useEffect(() => {
     const data = localStorage.getItem("lastConfirmedOrder");
     if (data) {
-      setConfirmationData(JSON.parse(data));
+      try {
+        const parsed = JSON.parse(data);
+        console.log("✅ confirmationData loaded:", parsed);
+        setConfirmationData(parsed);
+      } catch (err) {
+        console.error("❌ Failed to parse confirmation data:", err);
+        navigate("/");
+      }
     } else {
       navigate("/");
     }
@@ -24,13 +44,31 @@ const PurchaseConfirmation: React.FC = () => {
   if (!confirmationData) return null;
 
   const {
-    movieTitle,
-    showtime,
-    theaterId,
-    seatIds,
-    foodItems,
-    totalPrice,
+    ticket,
+    seats = [],
+    foodItems = [],
+    price,
   } = confirmationData;
+
+  const safeTitle = ticket?.movie?.title || "Unknown Movie";
+  const safeLocation = ticket?.location?.name || "Unknown";
+  const safeShowtime = ticket?.showtime
+    ? new Date(ticket.showtime).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "Unknown";
+
+  const safeTheater = ticket?.theater?.theaterNumber || ticket?.theaterId || confirmationData.theaterId || "Unknown";
+
+  const safeSeats = Array.isArray(seats) && seats.length > 0
+    ? seats.map((s: any) => `${rowToLetter(s.row)}${s.column}`).join(", ")
+    : "N/A";
+
+  const safeTotal = typeof price === "number" ? price.toFixed(2) : "N/A";
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -93,31 +131,30 @@ const PurchaseConfirmation: React.FC = () => {
         <div className="confirmation-box">
           <h1>Purchase Confirmed!</h1>
 
-          <p><strong>Movie:</strong> {movieTitle}</p>
-          <p><strong>Showtime:</strong> {showtime}</p>
-          <p><strong>Theater:</strong> {theaterId}</p>
+          <div className="mb-3">
+            <div><strong>Movie:</strong> {safeTitle}</div>
+            <div><strong>Location:</strong> {safeLocation}</div>
+            <div><strong>Theater:</strong> {safeTheater}</div>
+            <div><strong>Seat(s):</strong> {safeSeats}</div>
+            <div><strong>Showtime:</strong> {safeShowtime}</div>
+          </div>
 
-          {seatIds && seatIds.length > 0 && (
-            <p>
-              <strong>Seats Assigned:</strong> {seatIds.join(", ")}
-            </p>
-          )}
-
-          {foodItems && foodItems.length > 0 && (
+          {Array.isArray(foodItems) && foodItems.length > 0 && (
             <div>
               <strong>Food:</strong>
               <ul className="food-list">
                 {foodItems.map((item: FoodItem, i: number) => (
                   <li key={i}>
-                    {item.name} x{item.quantity} – $
-                    {(item.price * item.quantity).toFixed(2)}
+                    {item.name} x{item.quantity} – ${(
+                      item.price * item.quantity
+                    ).toFixed(2)}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          <p><strong>Total Paid:</strong> ${totalPrice.toFixed(2)}</p>
+          <p><strong>Total Paid:</strong> ${safeTotal}</p>
 
           <button onClick={() => navigate("/")} className="back-button">
             Back to Home

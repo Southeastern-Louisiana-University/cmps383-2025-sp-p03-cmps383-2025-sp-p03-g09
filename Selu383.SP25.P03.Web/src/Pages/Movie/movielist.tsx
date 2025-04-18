@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import { useNavigate } from 'react-router-dom';
+import { showtimeSchedule } from '../../Data/showtimeSchedule';
 
 interface Movie {
   id: number;
@@ -351,15 +352,48 @@ const MovieList: React.FC = () => {
                   <div className="flex flex-col gap-2 mt-2">
                   <span className="text-white font-medium">Select showtime:</span>
                     <div className="flex gap-4">
-                      {["12:00PM", "3:00PM", "6:00PM", "9:00PM"].map((time) => (
-                        <button
-                          key={time}
-                          className="ticket-button"
-                          onClick={() => navigate(`/movies/${movie.id}/purchase?showtime=${time}`)}
-                        >
-                          {time}
-                        </button>
-                      ))}
+                    {(() => {
+  const loc = localStorage.getItem("selectedLocation");
+let locationId = null;
+
+try {
+  locationId = JSON.parse(loc ?? '{}').id;
+} catch {
+  console.warn("Failed to parse selectedLocation");
+}
+
+if (!locationId) {
+  return (
+    <p className="text-red-400 font-bold">
+      Please select a location and refresh.
+    </p>
+  );
+}
+
+
+  const matchedShowtimes = showtimeSchedule.filter(
+    (entry) => Number(entry.movieId) === Number(movie.id) && Number(entry.locationId) === Number(locationId)
+  );
+  
+
+  return matchedShowtimes.map((entry, idx) => (
+    <button
+      key={idx}
+      className="ticket-button"
+      onClick={() =>
+        navigate(
+          `/seat-test?movieId=${movie.id}&showtime=${encodeURIComponent(entry.time)}&locationId=${entry.locationId}&theaterId=${entry.theaterId}`
+        )
+      }
+    >
+      {new Date(entry.time).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      })}
+    </button>
+  ));
+})()}
+
                     </div>
 
                     {isAdmin && (

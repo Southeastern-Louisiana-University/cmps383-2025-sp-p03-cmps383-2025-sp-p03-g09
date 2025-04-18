@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Selu383.SP25.P03.Api.Data;
 
@@ -11,9 +12,11 @@ using Selu383.SP25.P03.Api.Data;
 namespace Selu383.SP25.P03.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250413024756_UserNull")]
+    partial class UserNull
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -211,23 +214,15 @@ namespace Selu383.SP25.P03.Api.Migrations
 
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.OrderFoodItems.OrderFoodItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("FoodItemId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
+                    b.HasKey("OrderId", "FoodItemId");
 
                     b.HasIndex("FoodItemId");
-
-                    b.HasIndex("OrderId");
 
                     b.ToTable("OrderFoodItems");
                 });
@@ -240,9 +235,6 @@ namespace Selu383.SP25.P03.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("GuestId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -252,6 +244,9 @@ namespace Selu383.SP25.P03.Api.Migrations
 
                     b.Property<int>("SeatId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("TempFlag")
+                        .HasColumnType("bit");
 
                     b.Property<int>("TheaterId")
                         .HasColumnType("int");

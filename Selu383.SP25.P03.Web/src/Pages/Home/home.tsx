@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import { showtimeSchedule } from '../../Data/showtimeSchedule';
 
 
 interface Movie {
@@ -27,19 +28,8 @@ interface Location {
   address: string;
 }
 
-const setCookie = (name: string, value: string, days: number) => {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-};
 
-const getCookie = (name: string): string | null => {
-  const cookies = document.cookie.split('; ').reduce((acc: any, cookie) => {
-    const [key, val] = cookie.split('=');
-    acc[key] = val;
-    return acc;
-  }, {});
-  return cookies[name] ? decodeURIComponent(cookies[name]) : null;
-};
+
 
 const styles = `
   :root {
@@ -215,15 +205,15 @@ const Home: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [posterUrls, setPosterUrls] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [, setSelectedLocation] = useState<Location | null>(null);
-  const [showLocationModal, setShowLocationModal] = useState(true);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [showLocationModal, setShowLocationModal] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await fetch('/api/movies');
-        if (!response.ok) throw new Error('Failed to fetch movies');
+        const response = await fetch("/api/movies");
+        if (!response.ok) throw new Error("Failed to fetch movies");
         const data = await response.json();
         setMovies(data.slice(0, 3));
         setPosterUrls(data.map((m: Movie) => m.posterUrl).filter(Boolean));
@@ -234,21 +224,29 @@ const Home: React.FC = () => {
 
     const fetchLocations = async () => {
       try {
-        const response = await fetch('/api/locations');
-        if (!response.ok) throw new Error('Failed to fetch locations');
+        const response = await fetch("/api/locations");
+        if (!response.ok) throw new Error("Failed to fetch locations");
         const data = await response.json();
         setLocations(data);
+
+        const stored = localStorage.getItem("selectedLocation");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const valid = data.find((loc: Location) => loc.id === parsed.id);
+          if (valid) {
+            setSelectedLocation(valid);
+            setShowLocationModal(false);
+          } else {
+            localStorage.removeItem("selectedLocation");
+            setShowLocationModal(true);
+          }
+        } else {
+          setShowLocationModal(true);
+        }
       } catch (err) {
         console.error(err);
       }
     };
-
-    const stored = getCookie('selectedLocation');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setSelectedLocation(parsed);
-      setShowLocationModal(false);
-    }
 
     fetchMovies();
     fetchLocations();
@@ -269,9 +267,9 @@ const Home: React.FC = () => {
                     className="ticket-button w-full"
                     onClick={() => {
                       setSelectedLocation(loc);
-                      localStorage.setItem('selectedLocation', JSON.stringify(loc)); // optional
-                      setCookie('selectedLocation', JSON.stringify(loc), 30); // expires in 30 days
+                      localStorage.setItem('selectedLocation', JSON.stringify(loc));
                       setShowLocationModal(false);
+                      window.dispatchEvent(new Event('storage'));
                     }}
                   >
                     {loc.name}
@@ -318,20 +316,53 @@ const Home: React.FC = () => {
                       <span>Runtime: {movie.duration} mins</span> • <span>Rating: {movie.rating}</span>
                     </div>
                     <p className="text-gray-300 mb-4">{movie.description}</p>
+
                     <div className="flex items-center gap-4 mt-2">
-                    <span className="text-white font-medium">Select showtime:</span>
-                    <div className="flex gap-4">
-                      {["12:00PM", "3:00PM", "6:00PM", "9:00PM"].map((time) => (
-                        <button
-                          key={time}
-                          className="ticket-button"
-                          onClick={() => navigate(`/movies/${movie.id}/purchase?showtime=${time}`)}
-                        >
-                          {time}
-                        </button>
-                      ))}
+                      <span className="text-white font-medium">Select showtime:</span>
+                      <div className="flex gap-4">
+                        {(() => {
+                          const loc = localStorage.getItem("selectedLocation");
+                          let locationId = null;
+
+                          try {
+                            locationId = JSON.parse(loc ?? '{}').id;
+                          } catch {
+                            console.warn("Failed to parse selectedLocation");
+                          }
+
+                          if (!locationId) {
+                            return (
+                              <p className="text-red-400 font-bold">
+                                Please select a location and refresh.
+                              </p>
+                            );
+                          }
+
+                          const matchedShowtimes = showtimeSchedule.filter(
+                            (entry) =>
+                              Number(entry.movieId) === Number(movie.id) &&
+                              Number(entry.locationId) === Number(locationId)
+                          );
+
+                          return matchedShowtimes.map((entry, idx) => (
+                            <button
+                              key={idx}
+                              className="ticket-button"
+                              onClick={() =>
+                                navigate(
+                                  `/seat-test?movieId=${movie.id}&showtime=${encodeURIComponent(entry.time)}&locationId=${entry.locationId}&theaterId=${entry.theaterId}`
+                                )
+                              }
+                            >
+                              {new Date(entry.time).toLocaleTimeString([], {
+                                hour: "numeric",
+                                minute: "2-digit",
+                              })}
+                            </button>
+                          ));
+                        })()}
+                      </div>
                     </div>
-                  </div>
                   </div>
                 </div>
               ))}

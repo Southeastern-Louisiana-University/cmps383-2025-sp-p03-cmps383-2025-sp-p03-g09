@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
-using Selu383.SP25.P03.Api.Features.Tickets;
 using Selu383.SP25.P03.Api.Features.Seats;
+using Selu383.SP25.P03.Api.Features.Tickets;
+using Selu383.SP25.P03.Api.Features.Users;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -14,10 +16,12 @@ namespace Selu383.SP25.P03.Api.Controllers
         private readonly DbSet<Ticket> tickets;
         private readonly DbSet<Seat> seats;
         private readonly DataContext dataContext;
+        private readonly UserManager<User> userManager;
 
-        public TicketsController(DataContext dataContext)
+        public TicketsController(DataContext dataContext, UserManager<User> userManager)
         {
             this.dataContext = dataContext;
+            this.userManager = userManager;
             tickets = dataContext.Set<Ticket>();
             seats = dataContext.Set<Seat>();
         }
@@ -40,53 +44,82 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
-        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
-        public ActionResult<TicketDto> CreateTicket(TicketDto dto)
+
+
+        [HttpGet("byshowtime")]
+public async Task<ActionResult<IEnumerable<object>>> GetTicketsByShowtime(
+    [FromQuery] int movieId,
+    [FromQuery] int locationId,
+    [FromQuery] string showtime)
+{
+    var ticketsForShowtime = await tickets
+        .Where(t =>
+            t.MovieId == movieId &&
+            t.LocationId == locationId &&
+            t.Showtime == showtime)
+        .Select(t => new
         {
-            if (IsInvalid(dto))
-            {
-                return BadRequest("Invalid ticket data.");
-            }
+            t.SeatId
+        })
+        .ToListAsync();
+foreach (var t in ticketsForShowtime)
+{
+    Console.WriteLine($" - SeatId: {t.SeatId}");
+}
 
-            var seat = seats.FirstOrDefault(s => s.Id == dto.SeatId);
-            if (seat == null)
-            {
-                return BadRequest($"Seat with ID {dto.SeatId} does not exist.");
-            }
 
-            var seatTaken = tickets.Any(t => t.SeatId == dto.SeatId && t.Showtime == dto.Showtime);
-            if (seatTaken)
-            {
-                return Conflict("That seat is already taken for this showtime. Try again, clown.");
-            }
+    return Ok(ticketsForShowtime);
+}
 
-            if (seat.IsReserved)
-            {
-                return Conflict("Seat is already reserved. Better luck next time.");
-            }
 
-            var ticket = new Ticket
-            {
-                Price = dto.Price,
-                LocationId = dto.LocationId,
-                TheaterId = dto.TheaterId,
-                SeatId = dto.SeatId,
-                MovieId = dto.MovieId,
-                Showtime = dto.Showtime
-            };
+        [HttpPost]
+[AllowAnonymous]
+public async Task<ActionResult<TicketDto>> CreateTicket(TicketDto dto)
+{
+    if (IsInvalid(dto))
+    {
+        return BadRequest("Invalid ticket data.");
+    }
 
-            tickets.Add(ticket);
-            seat.IsReserved = true;
-            dataContext.SaveChanges();
+    var seat = await seats.FirstOrDefaultAsync(s => s.Id == dto.SeatId);
+    if (seat == null)
+    {
+        return BadRequest($"Seat with ID {dto.SeatId} does not exist.");
+    }
 
-            dto.Id = ticket.Id;
+    var seatTaken = await tickets.AnyAsync(t =>
+        t.SeatId == dto.SeatId &&
+        t.Showtime == dto.Showtime &&
+        t.TheaterId == dto.TheaterId &&
+        t.LocationId == dto.LocationId &&
+        t.MovieId == dto.MovieId
+    );
 
-            return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
-        }
+    if (seatTaken)
+    {
+        return Conflict("That seat is already taken for this showtime.");
+    }
+
+    var ticket = new Ticket
+    {
+        Price = dto.Price,
+        LocationId = dto.LocationId,
+        TheaterId = dto.TheaterId,
+        SeatId = dto.SeatId,
+        MovieId = dto.MovieId,
+        Showtime = dto.Showtime
+    };
+
+    tickets.Add(ticket);
+    await dataContext.SaveChangesAsync();
+
+    dto.Id = ticket.Id;
+    return CreatedAtAction(nameof(GetTicketById), new { id = dto.Id }, dto);
+}
+
 
         [HttpPut("{id}")]
-        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
+        [Authorize(Roles = UserRoleNames.Admin)]
         public ActionResult<TicketDto> UpdateTicket(int id, TicketDto dto)
         {
             if (IsInvalid(dto))
@@ -100,14 +133,12 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
-            // Ensure seat exists
             var seat = seats.FirstOrDefault(s => s.Id == dto.SeatId);
             if (seat == null)
             {
                 return BadRequest($"Seat with ID {dto.SeatId} does not exist.");
             }
 
-            // Prevent seat reassignment to already taken seat
             var conflictingTicket = tickets
                 .FirstOrDefault(t => t.SeatId == dto.SeatId && t.Showtime == dto.Showtime && t.Id != id);
             if (conflictingTicket != null)
@@ -122,7 +153,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             ticket.MovieId = dto.MovieId;
             ticket.Showtime = dto.Showtime;
 
-            seat.IsReserved = true;
 
             dataContext.SaveChanges();
             dto.Id = ticket.Id;
@@ -131,7 +161,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = Features.Users.UserRoleNames.Admin)]
+        [Authorize(Roles = UserRoleNames.Admin)]
         public ActionResult DeleteTicket(int id)
         {
             var ticket = tickets.FirstOrDefault(x => x.Id == id);
@@ -141,11 +171,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
 
             var seat = seats.FirstOrDefault(s => s.Id == ticket.SeatId);
-            if (seat != null)
-            {
-                seat.IsReserved = false;
-            }
-
+            
             tickets.Remove(ticket);
             dataContext.SaveChanges();
 
@@ -176,5 +202,22 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Showtime = x.Showtime
                 });
         }
+
+        [HttpGet("taken")]
+public async Task<ActionResult<IEnumerable<int>>> GetTakenSeatIds(
+    [FromQuery] int theaterId,
+    [FromQuery] string showtime)
+{
+    var takenSeatIds = await tickets
+        .Where(t =>
+            t.TheaterId == theaterId &&
+            t.Showtime == showtime)
+        .Select(t => t.SeatId)
+        .ToListAsync();
+
+    return Ok(takenSeatIds);
+}
+
+
     }
 }

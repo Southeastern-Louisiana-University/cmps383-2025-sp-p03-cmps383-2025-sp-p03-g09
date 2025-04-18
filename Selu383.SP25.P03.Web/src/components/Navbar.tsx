@@ -14,6 +14,11 @@ interface Location {
   address: string;
 }
 
+if (!localStorage.getItem("guestId")) {
+  localStorage.setItem("guestId", crypto.randomUUID());
+}
+
+
 const Navbar: React.FC = () => {
   const [user, setUser] = useState<UserDto | null>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -42,6 +47,18 @@ const Navbar: React.FC = () => {
     if (stored) {
       setSelectedLocation(JSON.parse(stored));
     }
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const updated = localStorage.getItem('selectedLocation');
+      if (updated) {
+        setSelectedLocation(JSON.parse(updated));
+      }
+    };
+  
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   useEffect(() => {
@@ -116,29 +133,41 @@ const Navbar: React.FC = () => {
           </div>
 
           <div className="navbar-user" ref={userDropdownRef}>
-            {user ? (
-              <>
-                <button
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="user-button"
-                >
-                  {user.userName}
-                </button>
-                {showUserDropdown && (
-                  <div className="dropdown">
-                    <Link to="/purchase/history" className="dropdown-item">
-                      Purchase History
-                    </Link>
-                    <button className="dropdown-item" onClick={handleLogout}>
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <Link to="/login" className="login-button">Login</Link>
-            )}
-          </div>
+  {user ? (
+    <>
+      <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="user-button">
+        {user.userName}
+      </button>
+      {showUserDropdown && (
+        <div className="dropdown">
+          <Link to="/purchase/history" className="dropdown-item">
+            Purchase History
+          </Link>
+          <button className="dropdown-item" onClick={handleLogout}>
+            Sign Out
+          </button>
+        </div>
+      )}
+    </>
+  ) : (
+    <>
+      <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="user-button">
+        Guest
+      </button>
+      {showUserDropdown && (
+        <div className="dropdown">
+          <Link to="/purchase/history" className="dropdown-item">
+            Purchase History
+          </Link>
+          <Link to="/login" className="dropdown-item">
+            Login
+          </Link>
+        </div>
+      )}
+    </>
+  )}
+</div>
+
         </div>
       </div>
     </header>

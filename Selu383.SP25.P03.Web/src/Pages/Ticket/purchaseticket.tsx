@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useParams } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 
+if (!localStorage.getItem("guestId")) {
+  localStorage.setItem("guestId", crypto.randomUUID());
+}
+
 // Food item interface
 interface FoodItem {
   id: number;
@@ -33,9 +37,10 @@ const PurchaseTicket: React.FC = () => {
   const locationId = searchParams.get("locationId");
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [ticketQuantity, setTicketQuantity] = useState<number>(1);
   const [movieDetails, setMovieDetails] = useState<Movie | null>(null);
   const [locationDetails, setLocationDetails] = useState<Location | null>(null);
+  const selectedSeats = JSON.parse(localStorage.getItem("cartItems") || "[]").filter((item: any) => item.seatId);
+
 
   useEffect(() => {
     fetch("/api/fooditems")
@@ -49,21 +54,20 @@ const PurchaseTicket: React.FC = () => {
     }
 
     const selected = localStorage.getItem("selectedLocation");
-if (selected) {
-  const parsed = JSON.parse(selected);
+    if (selected) {
+      const parsed = JSON.parse(selected);
 
-  fetch("/api/locations")
-    .then((res) => res.json())
-    .then((all) => {
-      const match = all.find((loc: Location) => loc.name === parsed.name);
-      if (match) {
-        setLocationDetails(match);
-      } else {
-        console.warn("⚠️ No matching location found for:", parsed.name);
-      }
-    });
-}
-
+      fetch("/api/locations")
+        .then((res) => res.json())
+        .then((all) => {
+          const match = all.find((loc: Location) => loc.name === parsed.name);
+          if (match) {
+            setLocationDetails(match);
+          } else {
+            console.warn("⚠️ No matching location found for:", parsed.name);
+          }
+        });
+    }
 
     fetch("/api/authentication/me", { credentials: "include" })
       .then((res) => res.json())
@@ -96,30 +100,30 @@ if (selected) {
     );
   };
 
-  const handleClearCart = () => {
-    setCartItems([]);
-    setTicketQuantity(1);
-  };
+
 
   const handleAddToCart = () => {
     const existing = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  
+
     const ticketNameParts = [];
     if (movieDetails?.title) ticketNameParts.push(movieDetails.title);
     if (locationDetails?.name) ticketNameParts.push(`(${locationDetails.name})`);
-  
-    const ticketItem = {
-      id: Date.now(),
-      name: ticketNameParts.join(" "),
-      quantity: ticketQuantity,
+
+    const ticketItem = selectedSeats.map((seat: any) => ({
+      id: Date.now() + (seat.seatId ?? seat.id),
+      name: `${movieDetails?.title} (${locationDetails?.name}) - Seat ${rowToLetter(seat.row)}${seat.column}`,
+      quantity: 1,
       price: 12.99,
       movieId: movieDetails?.id,
       locationId: locationDetails?.id,
       showtime,
-      seatId: undefined,
-      theaterId: undefined,
-    };
-  
+      seatId: seat.seatId ?? seat.id, 
+      theaterId: seat.theaterId,
+      seats: [{ id: seat.seatId ?? seat.id, row: seat.row, column: seat.column }], 
+    }));
+    
+    
+
     const foodCartItems = cartItems.map((item) => ({
       id: Date.now() + item.food.id,
       name: item.food.name,
@@ -130,26 +134,36 @@ if (selected) {
       movieId: undefined,
       locationId: undefined,
       showtime: undefined,
-      food: item.food, // ✅ THIS is the critical part
+      food: item.food,
     }));
-  
-    const allItems = [ticketItem, ...existing, ...foodCartItems];
-  
+
+    const allItems = [...ticketItem, ...existing, ...foodCartItems];
+
     localStorage.setItem("cartItems", JSON.stringify(allItems));
     window.location.href = "/cart";
   };
-  
-  
-  
-  
-  
 
-  const ticketTotalPrice = 12.99 * ticketQuantity;
+  const ticketTotalPrice = 12.99 * selectedSeats.length;
   const foodTotalPrice = cartItems.reduce(
     (sum, item) => sum + item.food.price * item.quantity,
     0
   );
   const totalPrice = ticketTotalPrice + foodTotalPrice;
+  const rowToLetter = (row: string | number): string => {
+    const num = typeof row === "string" ? parseInt(row, 10) : row;
+    if (isNaN(num) || num <= 0) return "?";
+    let result = "";
+    let n = num;
+    while (n > 0) {
+      n--;
+      result = String.fromCharCode((n % 26) + 65) + result;
+      n = Math.floor(n / 26);
+    }
+    return result;
+  };
+  
+  
+
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -283,100 +297,67 @@ if (selected) {
 
       <div className="purchase-container">
         <div className="cart-section">
-          <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
-          <button className="clear-cart-button mb-4" onClick={handleClearCart}>
-            Clear Cart
-          </button>
+          
+
           <div className="bg-gray-900 p-4 rounded mb-6">
             <h2 className="text-xl font-bold mb-2">Ticket Details</h2>
-            {movieDetails && (
-              <p>
-                <strong>Movie:</strong> {movieDetails.title}
-              </p>
-            )}
-            {locationDetails && (
-              <p>
-                <strong>Location:</strong> {locationDetails.name}
-              </p>
-            )}
-            <p>
-              <strong>Showtime:</strong> {showtime}
-            </p>
-            <div className="flex items-center gap-4 mt-4">
-              <label htmlFor="ticket-quantity" className="text-white">
-                <strong>Tickets:</strong>
-              </label>
-              <select
-                id="ticket-quantity"
-                value={ticketQuantity}
-                onChange={(e) => setTicketQuantity(Number(e.target.value))}
-                className="ticket-dropdown"
-              >
-                {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p className="mt-4">
-              <strong>Ticket Price:</strong> ${ticketTotalPrice.toFixed(2)}
-            </p>
+            {movieDetails && <p><strong>Movie:</strong> {movieDetails.title}</p>}
+            {locationDetails && <p><strong>Location:</strong> {locationDetails.name}</p>}
+            <p><strong>Theater:</strong> {selectedSeats[0]?.theaterId || "N/A"}</p>
+            <p><strong>Showtime:</strong> {showtime ? new Date(showtime).toLocaleString("en-US", 
+            {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit"
+            }) : "N/A"}</p>
+
+<p><strong>Seats:</strong> {selectedSeats.map((s: any) => {
+  const rowChar = typeof s.row === "number" ? String.fromCharCode(64 + s.row) : s.row;
+  return `${rowChar}${s.column}`;
+}).join(", ")}</p>
+
+            <p className="mt-4"><strong>Ticket Price:</strong> ${ticketTotalPrice.toFixed(2)}</p>
           </div>
+
           {cartItems.length > 0 && (
             <div className="bg-gray-900 p-4 rounded mb-6">
               <h2 className="text-xl font-bold mb-2">Food Items</h2>
               {cartItems.map((item) => (
                 <div key={item.food.id} className="cart-item">
                   <div className="cart-item-details">
-                    <span>
-                      {item.food.name} x{item.quantity}
-                    </span>
+                    <span>{item.food.name} x{item.quantity}</span>
                     <span>${(item.food.price * item.quantity).toFixed(2)}</span>
                   </div>
-                  <button
-                    className="remove-button"
-                    onClick={() => handleRemoveFood(item.food.id)}
-                  >
+                  <button className="remove-button" onClick={() => handleRemoveFood(item.food.id)}>
                     Remove
                   </button>
                 </div>
               ))}
             </div>
           )}
+
           <div className="cart-total">Total: ${totalPrice.toFixed(2)}</div>
           <button
-  className="bg-red-600 text-white px-6 py-3 mt-8 text-lg rounded hover:bg-red-700 transition w-full"
-  onClick={handleAddToCart}
->
-  Add to Cart
-</button>
-
-
+            className="bg-red-600 text-white px-6 py-3 mt-8 text-lg rounded hover:bg-red-700 transition w-full"
+            onClick={handleAddToCart}
+          >
+            Add to Cart
+          </button>
         </div>
 
         <div className="food-ads">
-          <h2 className="text-xl font-bold text-center mb-4">
-            Want to add some food?
-          </h2>
+          <h2 className="text-xl font-bold text-center mb-4">Want to add some food?</h2>
           {foodItems.map((food: FoodItem) => (
             <div key={food.id} className="food-item">
-              <img
-                src={food.imageUrl || "/fallback.jpg"}
-                alt={food.name}
-                className="food-image"
-              />
+              <img src={food.imageUrl || "/fallback.jpg"} alt={food.name} className="food-image" />
               <div className="food-details">
                 <div>
                   <p className="food-name">{food.name}</p>
                   <p className="food-price">${food.price.toFixed(2)}</p>
                 </div>
-                <button
-                  className="add-button"
-                  onClick={() => handleAddFood(food)}
-                >
-                  Add
-                </button>
+                <button className="add-button" onClick={() => handleAddFood(food)}>Add</button>
               </div>
             </div>
           ))}
