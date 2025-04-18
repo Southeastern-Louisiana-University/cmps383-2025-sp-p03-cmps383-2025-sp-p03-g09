@@ -58,7 +58,23 @@ const styles = `
   }
 
   .login-button:hover {
-    background-color: #10b981;
+    background-color: #0e9e6e;
+  }
+
+  .signup-link {
+    margin-top: 1rem;
+    color: #ccc;
+    font-size: 0.95rem;
+  }
+
+  .signup-link a {
+    color: #10b981;
+    font-weight: bold;
+    text-decoration: none;
+  }
+
+  .signup-link a:hover {
+    text-decoration: underline;
   }
 
   @keyframes fadeIn {
@@ -117,6 +133,12 @@ const Login: React.FC = () => {
             Login
           </button>
         </form>
+        <p className="signup-link">
+          Don’t have an account?{' '}
+          <a onClick={() => navigate('/signup')} style={{ cursor: 'pointer' }}>
+            Sign Up Here
+          </a>
+        </p>
       </div>
     </>
   );
