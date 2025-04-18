@@ -205,7 +205,7 @@ const Home: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [posterUrls, setPosterUrls] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [, setSelectedLocation] = useState<Location | null>(null);
   const [showLocationModal, setShowLocationModal] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
