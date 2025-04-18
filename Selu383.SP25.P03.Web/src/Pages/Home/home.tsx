@@ -221,7 +221,7 @@ const Home: React.FC = () => {
         console.error(err);
       }
     };
-
+//this is a comment
     const fetchLocations = async () => {
       try {
         const response = await fetch("/api/locations");
