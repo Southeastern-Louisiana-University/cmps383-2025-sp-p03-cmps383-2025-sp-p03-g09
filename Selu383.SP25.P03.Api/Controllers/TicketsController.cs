@@ -44,6 +44,34 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(result);
         }
 
+
+
+        [HttpGet("byshowtime")]
+public async Task<ActionResult<IEnumerable<object>>> GetTicketsByShowtime(
+    [FromQuery] int movieId,
+    [FromQuery] int locationId,
+    [FromQuery] string showtime)
+{
+    var ticketsForShowtime = await tickets
+        .Where(t =>
+            t.MovieId == movieId &&
+            t.LocationId == locationId &&
+            t.Showtime == showtime)
+        .Select(t => new
+        {
+            t.SeatId
+        })
+        .ToListAsync();
+foreach (var t in ticketsForShowtime)
+{
+    Console.WriteLine($" - SeatId: {t.SeatId}");
+}
+
+
+    return Ok(ticketsForShowtime);
+}
+
+
         [HttpPost]
 [AllowAnonymous]
 public async Task<ActionResult<TicketDto>> CreateTicket(TicketDto dto)
@@ -174,5 +202,22 @@ public async Task<ActionResult<TicketDto>> CreateTicket(TicketDto dto)
                     Showtime = x.Showtime
                 });
         }
+
+        [HttpGet("taken")]
+public async Task<ActionResult<IEnumerable<int>>> GetTakenSeatIds(
+    [FromQuery] int theaterId,
+    [FromQuery] string showtime)
+{
+    var takenSeatIds = await tickets
+        .Where(t =>
+            t.TheaterId == theaterId &&
+            t.Showtime == showtime)
+        .Select(t => t.SeatId)
+        .ToListAsync();
+
+    return Ok(takenSeatIds);
+}
+
+
     }
 }

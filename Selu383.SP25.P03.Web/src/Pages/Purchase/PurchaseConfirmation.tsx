@@ -8,6 +8,19 @@ interface FoodItem {
   quantity: number;
 }
 
+const rowToLetter = (row: string | number): string => {
+  const num = typeof row === "string" ? parseInt(row, 10) : row;
+  if (isNaN(num) || num <= 0) return "?";
+  let result = "";
+  let n = num;
+  while (n > 0) {
+    n--;
+    result = String.fromCharCode((n % 26) + 65) + result;
+    n = Math.floor(n / 26);
+  }
+  return result;
+};
+
 const PurchaseConfirmation: React.FC = () => {
   const navigate = useNavigate();
   const [confirmationData, setConfirmationData] = useState<any>(null);
@@ -17,10 +30,10 @@ const PurchaseConfirmation: React.FC = () => {
     if (data) {
       try {
         const parsed = JSON.parse(data);
-        console.log("confirmationData loaded:", parsed);
+        console.log("✅ confirmationData loaded:", parsed);
         setConfirmationData(parsed);
       } catch (err) {
-        console.error("Failed to parse confirmation data:", err);
+        console.error("❌ Failed to parse confirmation data:", err);
         navigate("/");
       }
     } else {
@@ -31,38 +44,31 @@ const PurchaseConfirmation: React.FC = () => {
   if (!confirmationData) return null;
 
   const {
-    movieTitle,
-    showtime,
-    theaterId,
-    seatIds,
-    foodItems,
-    totalPrice,
-    ticket
+    ticket,
+    seats = [],
+    foodItems = [],
+    price,
   } = confirmationData;
 
-  const safeTitle =
-  (movieTitle?.replace(/ - Seat [A-Z]+\d+$/, "")) ||
-  ticket?.movie?.title ||
-  "Unknown Movie";
+  const safeTitle = ticket?.movie?.title || "Unknown Movie";
+  const safeLocation = ticket?.location?.name || "Unknown";
+  const safeShowtime = ticket?.showtime
+    ? new Date(ticket.showtime).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "Unknown";
 
-const safeShowtime = new Date(ticket?.showtime || showtime).toLocaleString("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-const safeTheater = ticket?.theater?.theaterNumber || ticket?.theaterId || theaterId || "Unknown";
-const seatLabelMatch = movieTitle?.match(/ - Seat ([A-Z]+\d+)$/);
-const safeSeats = seatLabelMatch ? seatLabelMatch[1] : "N/A";
+  const safeTheater = ticket?.theater?.theaterNumber || ticket?.theaterId || confirmationData.theaterId || "Unknown";
 
+  const safeSeats = Array.isArray(seats) && seats.length > 0
+    ? seats.map((s: any) => `${rowToLetter(s.row)}${s.column}`).join(", ")
+    : "N/A";
 
-
-
-const safeTotal = typeof totalPrice === "number" ? totalPrice.toFixed(2) : "N/A";
-
-
-
+  const safeTotal = typeof price === "number" ? price.toFixed(2) : "N/A";
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -126,12 +132,12 @@ const safeTotal = typeof totalPrice === "number" ? totalPrice.toFixed(2) : "N/A"
           <h1>Purchase Confirmed!</h1>
 
           <div className="mb-3">
-  <div><strong>Movie:</strong> {safeTitle}</div>
-  <div><strong>Seat:</strong> {safeSeats}</div>
-  <div><strong>Theater:</strong> {safeTheater}</div>
-  <div><strong>Showtime:</strong> {safeShowtime}</div>
-</div>
-
+            <div><strong>Movie:</strong> {safeTitle}</div>
+            <div><strong>Location:</strong> {safeLocation}</div>
+            <div><strong>Theater:</strong> {safeTheater}</div>
+            <div><strong>Seat(s):</strong> {safeSeats}</div>
+            <div><strong>Showtime:</strong> {safeShowtime}</div>
+          </div>
 
           {Array.isArray(foodItems) && foodItems.length > 0 && (
             <div>
@@ -139,8 +145,9 @@ const safeTotal = typeof totalPrice === "number" ? totalPrice.toFixed(2) : "N/A"
               <ul className="food-list">
                 {foodItems.map((item: FoodItem, i: number) => (
                   <li key={i}>
-                    {item.name} x{item.quantity} – $
-                    {(item.price * item.quantity).toFixed(2)}
+                    {item.name} x{item.quantity} – ${(
+                      item.price * item.quantity
+                    ).toFixed(2)}
                   </li>
                 ))}
               </ul>

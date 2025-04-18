@@ -365,7 +365,7 @@ try {
 if (!locationId) {
   return (
     <p className="text-red-400 font-bold">
-      ⚠️ No location selected. Please select a location from the Navbar.
+      Please select a location and refresh.
     </p>
   );
 }

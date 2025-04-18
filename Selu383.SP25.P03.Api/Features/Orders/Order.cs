@@ -27,6 +27,8 @@ namespace Selu383.SP25.P03.Api.Features.Orders
 
         public DateTime PurchaseTime { get; set; }
 
+        public string? GuestId { get; set; }
+
 
         public ICollection<OrderFoodItem> OrderFoodItems { get; set; } = new List<OrderFoodItem>();
     }

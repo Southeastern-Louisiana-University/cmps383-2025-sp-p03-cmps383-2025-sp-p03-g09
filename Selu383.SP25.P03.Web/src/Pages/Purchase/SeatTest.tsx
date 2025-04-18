@@ -10,7 +10,6 @@ interface Seat {
   reservedByUserId?: string;
 }
 
-
 const SeatTest: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -23,11 +22,13 @@ const SeatTest: React.FC = () => {
   const showtime = searchParams.get("showtime");
   const theaterId = searchParams.get("theaterId");
 
-  const guestId = localStorage.getItem("guestId") || (() => {
-    const id = crypto.randomUUID();
-    localStorage.setItem("guestId", id);
-    return id;
-  })();
+  const guestId =
+    localStorage.getItem("guestId") ||
+    (() => {
+      const id = crypto.randomUUID();
+      localStorage.setItem("guestId", id);
+      return id;
+    })();
 
   const loadSeats = () => {
     if (!theaterId) return;
@@ -40,35 +41,36 @@ const SeatTest: React.FC = () => {
     if (movieId && locationId && showtime) {
       const params = new URLSearchParams({ movieId, locationId, showtime });
 
-      fetch(`/api/tickets?${params}`)
+      fetch(`/api/tickets/byshowtime?${params}`)
         .then((res) => res.json())
         .then((data) => {
-          const ids = data.map((ticket: any) => ticket.seatId);
-          setTakenSeatIds(ids);
+          const backendIds = Array.isArray(data) ? data.map((t: any) => t.seatId) : [];
+
+          let localSeatIds: number[] = [];
+          try {
+            const confirmationRaw = localStorage.getItem("lastConfirmedOrder");
+            if (confirmationRaw) {
+              const parsed = JSON.parse(confirmationRaw);
+              if (parsed?.ticket?.showtime === showtime && Array.isArray(parsed.seats)) {
+                localSeatIds = parsed.seats.map((s: any) => s.seatId);
+              }
+            }
+          } catch (err) {
+            console.warn("Could not parse confirmation seats:", err);
+          }
+
+          const all = new Set<number>();
+          backendIds.forEach((id) => all.add(id));
+          localSeatIds.forEach((id) => all.add(id));
+
+          setTakenSeatIds(Array.from(all));
         })
         .catch((err) => console.error("Failed to fetch taken seats:", err));
     }
   };
 
   useEffect(() => {
-    
-    window.addEventListener("pageshow", (e: PageTransitionEvent) => {
-      if (e.persisted) window.location.reload();
-    });
-    return () => window.removeEventListener("pageshow", () => {});
-  }, []);
-
-  useEffect(() => {
-    const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
-  
-    const cleaned = cartItems.filter((item: any) =>
-      item.name && item.price && item.quantity
-    );
-  
-    localStorage.setItem("cartItems", JSON.stringify(cleaned));
-  
     loadSeats();
-  
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -120,22 +122,16 @@ const SeatTest: React.FC = () => {
 
   const rowToLetter = (row: string | number): string => {
     const num = typeof row === "string" ? parseInt(row, 10) : row;
-  
     if (isNaN(num) || num <= 0) return "?";
-  
     let result = "";
     let n = num;
-  
     while (n > 0) {
       n--;
       result = String.fromCharCode((n % 26) + 65) + result;
       n = Math.floor(n / 26);
     }
-  
     return result;
   };
-  
-  
 
   const handleConfirmSeats = () => {
     if (selectedSeats.length === 0 || !movieId || !locationId || !showtime || !theaterId) {
@@ -152,12 +148,9 @@ const SeatTest: React.FC = () => {
       theaterId: Number(theaterId),
       showtime,
     }));
-    
-    
+
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
-    
     navigate(`/movies/${movieId}/purchase?showtime=${encodeURIComponent(showtime)}&locationId=${locationId}&theaterId=${theaterId}`);
-    
   };
 
   const renderSeatGrid = () => {
@@ -166,13 +159,12 @@ const SeatTest: React.FC = () => {
       const rowB = parseInt(b.row);
       return rowA === rowB ? a.column - b.column : rowA - rowB;
     });
-    
+
     const rowNums = Array.from(new Set(sorted.map((s) => parseInt(s.row)))).sort((a, b) => a - b);
-    
 
     return rowNums.map((rowNum) => {
       const rowSeats = sorted.filter((s) => parseInt(s.row) === rowNum);
-    
+
       return (
         <div key={rowNum} style={{ display: "flex", marginBottom: "6px", justifyContent: "center" }}>
           <div style={{ width: "40px", textAlign: "right", marginRight: "8px" }}>
@@ -197,7 +189,7 @@ const SeatTest: React.FC = () => {
               color: "white",
               border: "none"
             };
-    
+
             return (
               <button
                 key={seat.id}
@@ -205,14 +197,13 @@ const SeatTest: React.FC = () => {
                 disabled={isTaken && !isSelected}
                 style={style}
               >
-<span>{rowToLetter(seat.row)}{seat.column}</span>
-</button>
+                <span>{rowToLetter(seat.row)}{seat.column}</span>
+              </button>
             );
           })}
         </div>
       );
     });
-    
   };
 
   return (
@@ -220,11 +211,7 @@ const SeatTest: React.FC = () => {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-6">Seat Selection</h1>
-
-        
-
         {renderSeatGrid()}
-
         <div className="text-center mt-6">
           <button
             onClick={handleConfirmSeats}

@@ -72,34 +72,46 @@ const PurchaseHistory: React.FC = () => {
         const res = await fetch("/api/authentication/me", { credentials: "include" });
 
         if (res.ok) {
-          // Logged in user - fetch orders from API
           const userRes = await fetch("/api/orders/user", { credentials: "include" });
-          if (!userRes.ok) {
-            throw new Error("Failed to fetch user orders");
-          }
-          const data = await userRes.json();
-          setOrders(data);
-        } else {
-          // Guest user - get orders from localStorage
-          try {
-            const guestOrdersString = localStorage.getItem("guestOrderHistory");
-            console.log("Guest orders from localStorage:", guestOrdersString);
-            
-            if (guestOrdersString) {
-              const guestOrders = JSON.parse(guestOrdersString);
-              if (Array.isArray(guestOrders)) {
-                setOrders(guestOrders);
-              } else {
-                console.error("Guest orders is not an array:", guestOrders);
-                setOrders([]);
-              }
+          if (!userRes.ok) throw new Error("Failed to fetch user orders");
+
+          const rawData = await userRes.json();
+
+          const normalized = rawData.map((o: any) => ({
+            ...o,
+            seats: o.Seats || o.seats || [],
+            foodItems: o.FoodItems || o.foodItems || [],
+          }));
+
+          const grouped: Record<string, Order> = {};
+          normalized.forEach((order: Order) => {
+            const key = `${order.purchaseTime}_${order.userId || "guest"}`;
+
+            if (!grouped[key]) {
+              grouped[key] = {
+                ...order,
+                seats: [...(order.seats || [])],
+                foodItems: [...(order.foodItems || [])],
+              };
             } else {
-              console.log("No guest orders found in localStorage");
+              grouped[key].seats.push(...(order.seats || []));
+              grouped[key].foodItems?.push(...(order.foodItems || []));
+              grouped[key].price += order.price;
+            }
+          });
+
+          setOrders(Object.values(grouped));
+        } else {
+          const guestOrdersString = localStorage.getItem("guestOrderHistory");
+          if (guestOrdersString) {
+            const guestOrders = JSON.parse(guestOrdersString);
+            if (Array.isArray(guestOrders)) {
+              setOrders(guestOrders);
+            } else {
+              console.error("Guest orders is not an array:", guestOrders);
               setOrders([]);
             }
-          } catch (localStorageError) {
-            console.error("Error parsing guest orders from localStorage:", localStorageError);
-            setError("Error loading guest purchase history");
+          } else {
             setOrders([]);
           }
         }
@@ -114,32 +126,26 @@ const PurchaseHistory: React.FC = () => {
     fetchHistory();
   }, []);
 
-  // Format and group food items
   const renderFoodItems = (foodItems: Order['foodItems']) => {
     if (!foodItems || foodItems.length === 0) return "None";
-    
+
     const grouped = foodItems.reduce((acc, item) => {
       if (!item) return acc;
-      
       const key = `${item.name}-${item.price}`;
       if (!acc[key]) {
-        acc[key] = { 
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity || 1
-        };
+        acc[key] = { name: item.name, price: item.price, quantity: item.quantity || 1 };
       } else {
-        acc[key].quantity = (acc[key].quantity || 0) + (item.quantity || 1);
+        acc[key].quantity += item.quantity || 1;
       }
       return acc;
     }, {} as Record<string, { name: string; price: number; quantity: number }>);
-    
+
     return (
       <div className="ml-4">
         <ul className="food-list">
           {Object.values(grouped).map((item, idx) => (
             <li key={idx}>
-              {item.name} x{item.quantity} – ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+              {item.name} x{item.quantity} – ${(item.price * item.quantity).toFixed(2)}
             </li>
           ))}
         </ul>
@@ -209,7 +215,7 @@ const PurchaseHistory: React.FC = () => {
             <p className="text-center">You have no past orders.</p>
           ) : (
             orders.map((order, index) => (
-              <div key={order.id || `guest-order-${index}`} className="order-item">
+              <div key={order.purchaseTime + "_" + index} className="order-item">
                 <h2>Movie: {order.ticket?.movie?.title || "N/A"}</h2>
                 <p className="order-detail">
                   <strong>Location:</strong> {order.ticket?.location?.name || "N/A"}
@@ -227,7 +233,7 @@ const PurchaseHistory: React.FC = () => {
                     : "N/A"}
                 </p>
                 <p className="order-detail">
-                  <strong>Seats:</strong>{" "}
+                  <strong>Seat(s):</strong>{" "}
                   {order.seats && order.seats.length > 0
                     ? order.seats.map((s) => `${rowToLetter(s.row)}${s.column}`).join(", ")
                     : "N/A"}

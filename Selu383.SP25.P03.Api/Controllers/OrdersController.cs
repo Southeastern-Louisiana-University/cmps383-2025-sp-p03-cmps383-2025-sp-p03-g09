@@ -64,11 +64,21 @@ namespace Selu383.SP25.P03.Api.Controllers
                 var allMatchingTickets = new List<object>();
 if (o.TicketId != 0)
 {
-    var ticket = context.Tickets
-        .Include(t => t.Seat)
-        .FirstOrDefault(t => t.Id == o.TicketId);
+    var matchingTickets = context.Tickets
+    .Include(t => t.Seat)
+    .Where(t =>
+        t.MovieId == o.Ticket.MovieId &&
+        t.LocationId == o.Ticket.LocationId &&
+        t.Showtime == o.Ticket.Showtime &&
+        t.TheaterId == o.TheaterId
+    )
+    .ToList();
 
-    if (ticket?.Seat != null)
+
+
+foreach (var ticket in matchingTickets)
+{
+    if (ticket.Seat != null)
     {
         allMatchingTickets.Add(new
         {
@@ -77,6 +87,8 @@ if (o.TicketId != 0)
             Column = ticket.Seat.Column
         });
     }
+}
+
 }
 
 
@@ -120,43 +132,65 @@ if (o.TicketId != 0)
             return Ok(orders);
         }
 
-        [HttpGet("guest/{guestId}")]
+  [HttpGet("guest/{guestId}")]
 public async Task<ActionResult<IEnumerable<object>>> GetOrdersForGuest(string guestId)
 {
-    var orders = await context.Orders
-        .Include(o => o.OrderFoodItems)
-            .ThenInclude(of => of.FoodItem)
-        .Include(o => o.Ticket)
-            .ThenInclude(t => t.Movie)
-        .Include(o => o.Ticket)
-            .ThenInclude(t => t.Location)
-        .Where(o => o.UserId == null && o.Ticket != null &&
-                    context.Tickets.Any(t => t.Id == o.TicketId))
-        .ToListAsync();
+    try
+    {
+        var orders = await context.Orders
+            .Where(o => o.GuestId == guestId)
+            .Include(o => o.OrderFoodItems)
+                .ThenInclude(of => of.FoodItem)
+            .Include(o => o.Ticket)
+                .ThenInclude(t => t.Movie)
+            .Include(o => o.Ticket)
+                .ThenInclude(t => t.Location)
+            .Include(o => o.Ticket)
+                .ThenInclude(t => t.Seat)
+            .ToListAsync();
 
-    var guestOrders = orders
-        .Where(o => o.Ticket != null && o.Ticket.SeatId != 0)
-        .Select(o =>
+        var guestOrders = orders.Select(o =>
         {
-            var allMatchingTickets = context.Tickets
-                .Where(t =>
-                    t.TheaterId == o.TheaterId &&
-                    t.Showtime == o.Ticket.Showtime &&
-                    t.MovieId == o.Ticket.MovieId &&
-                    t.LocationId == o.Ticket.LocationId &&
-                    t.Price == 12.99m)
-                .Select(t => t.SeatId)
-                .ToList();
+            var matchingTickets = context.Tickets
+    .Include(t => t.Seat)
+    .Where(t =>
+        t.MovieId == o.Ticket.MovieId &&
+        t.LocationId == o.Ticket.LocationId &&
+        t.Showtime == o.Ticket.Showtime &&
+        t.TheaterId == o.TheaterId
+    )
+    .ToList();
 
-            var foodItemsGrouped = o.OrderFoodItems
-                .GroupBy(of => new { of.FoodItemId, of.FoodItem.Name, of.FoodItem.Price })
-                .Select(g => new
-                {
-                    g.Key.FoodItemId,
-                    Name = g.Key.Name,
-                    Price = g.Key.Price,
-                    Quantity = g.Count()
-                }).ToList();
+
+
+var seatList = matchingTickets
+    .Where(t => t.Seat != null)
+    .Select(t => new
+    {
+        SeatId = t.Seat.Id,
+        Row = t.Seat.Row,
+        Column = t.Seat.Column
+    })
+    .ToList();
+
+
+            var foodItems = new List<object>();
+
+if (o.OrderFoodItems != null)
+{
+    foodItems = o.OrderFoodItems
+        .Where(of => of.FoodItem != null)
+        .GroupBy(of => new { of.FoodItem.Id, of.FoodItem.Name, of.FoodItem.Price })
+        .Select(g => (object)new
+        {
+            FoodItemId = g.Key.Id,
+            Name = g.Key.Name,
+            Price = g.Key.Price,
+            Quantity = g.Count()
+        })
+        .ToList();
+}
+
 
             return new
             {
@@ -164,22 +198,35 @@ public async Task<ActionResult<IEnumerable<object>>> GetOrdersForGuest(string gu
                 o.Price,
                 o.UserId,
                 o.TheaterId,
-                SeatIds = allMatchingTickets,
+                Seats = seatList,
                 o.TicketId,
                 o.PurchaseTime,
-                Ticket = new
+                Ticket = o.Ticket == null ? null : new
                 {
                     o.Ticket.Id,
                     o.Ticket.Showtime,
-                    Movie = new { o.Ticket.Movie.Title },
-                    Location = new { o.Ticket.Location.Name }
+                    Movie = o.Ticket.Movie == null ? null : new
+                    {
+                        o.Ticket.Movie.Title
+                    },
+                    Location = o.Ticket.Location == null ? null : new
+                    {
+                        o.Ticket.Location.Name
+                    }
                 },
-                FoodItems = foodItemsGrouped
+                FoodItems = foodItems
             };
         });
 
-    return Ok(guestOrders);
+        return Ok(guestOrders);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"SERVER EXPLODED:\n{ex.Message}\n\n{ex.StackTrace}");
+    }
 }
+
+
 
 
 
@@ -222,11 +269,10 @@ public async Task<IActionResult> CreateOrder()
     }
 
     var theater = await context.Theaters.FirstOrDefaultAsync(t => t.Id == dto.TheaterId);
-if (theater == null)
-{
-    return BadRequest($"No theater found with ID {dto.TheaterId}.");
-}
-
+    if (theater == null)
+    {
+        return BadRequest($"No theater found with ID {dto.TheaterId}.");
+    }
 
     var alreadyTaken = await context.Tickets
         .Where(t => seatIds.Contains(t.SeatId))
@@ -240,51 +286,60 @@ if (theater == null)
     }
 
     var ticketUnitPrice = 12.99m;
-    var tickets = seatIds.Select(seatId => new Ticket
+    var newTickets = seatIds.Select(sid => new Ticket
     {
         MovieId = movieId,
         LocationId = locationId,
         TheaterId = theater.Id,
-        SeatId = seatId,
+        SeatId = sid,
         Price = ticketUnitPrice,
         Showtime = showtime ?? "UNKNOWN"
     }).ToList();
 
-    context.Tickets.AddRange(tickets);
+    context.Tickets.AddRange(newTickets);
     await context.SaveChangesAsync();
 
-    var order = new Order
+    var guestId = Request.Headers.ContainsKey("X-Guest-ID")
+        ? Request.Headers["X-Guest-ID"].ToString()
+        : null;
+
+    var sharedTime = DateTime.UtcNow;
+
+    var ordersToCreate = new List<Order>();
+    foreach (var tk in newTickets)
     {
-        Price = dto.Price,
-        UserId = dto.UserId,
-        TheaterId = theater.Id,
-        SeatId = tickets[0].SeatId,
-        TicketId = tickets[0].Id,
-        PurchaseTime = DateTime.UtcNow
-    };
+        ordersToCreate.Add(new Order
+        {
+            Price = dto.Price,
+            UserId = dto.UserId,
+            GuestId = guestId,
+            TheaterId = theater.Id,
+            SeatId = tk.SeatId,
+            TicketId = tk.Id,
+            PurchaseTime = sharedTime
+        });
+    }
 
-    context.Orders.Add(order);
+    context.Orders.AddRange(ordersToCreate);
     await context.SaveChangesAsync();
 
-    var uniqueFoodItemIds = dto.FoodItemIds.Distinct();
-    var orderFoodItems = uniqueFoodItemIds
-        .Select(id => new OrderFoodItem
+    var orderFoodItems = dto.FoodItemIds
+        .Select(fid => new OrderFoodItem
         {
-            OrderId = order.Id,
-            FoodItemId = id
-        })
-        .ToList();
+            OrderId = ordersToCreate[0].Id,
+            FoodItemId = fid
+        }).ToList();
 
     context.OrderFoodItems.AddRange(orderFoodItems);
     await context.SaveChangesAsync();
 
     return Ok(new
     {
-        order.Id,
+        orders = ordersToCreate.Select(o => o.Id).ToList(),
         theaterId = theater.Id,
-        seatIds = tickets.Select(t => t.SeatId).ToList()
+        seatIds = newTickets.Select(t => t.SeatId).ToList()
     });
 }
+}
 
-    }
 }

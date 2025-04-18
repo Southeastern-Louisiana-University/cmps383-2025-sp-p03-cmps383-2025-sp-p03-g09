@@ -29,6 +29,7 @@ const CartPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [userId, setUserId] = useState<number | null>(null);
+  const [locationName, setLocationName] = useState<string | null>(null);
 
   useEffect(() => {
     const storedItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
@@ -55,6 +56,16 @@ const CartPage: React.FC = () => {
       })
       .then((user) => setUserId(user.id))
       .catch(() => setUserId(null));
+      const selectedLoc = localStorage.getItem("selectedLocation");
+if (selectedLoc) {
+  try {
+    const parsed = JSON.parse(selectedLoc);
+    if (parsed?.name) setLocationName(parsed.name);
+  } catch (err) {
+    console.warn("Failed to parse selectedLocation:", err);
+  }
+}
+
   }, []);
   
 
@@ -99,11 +110,18 @@ const CartPage: React.FC = () => {
       return;
     }
 
-    const ticketItem = cartItems.find((item) => !item.food);
-    if (!ticketItem) {
-      alert("No ticket found in cart.");
-      return;
-    }
+    const ticketItems = cartItems.filter((item) => !item.food);
+if (ticketItems.length === 0) {
+  alert("No ticket found in cart.");
+  return;
+}
+
+const allSeats = ticketItems.flatMap((item) =>
+  Array.isArray(item.seats) ? item.seats.map((s) => s.id) : []
+);
+
+const ticketItem = ticketItems[0];
+
 
     const foodItemIds = cartItems
       .filter((item) => item.food)
@@ -117,9 +135,8 @@ const CartPage: React.FC = () => {
       theaterId: ticketItem.theaterId,
       showtime: ticketItem.showtime!,
       ticketQuantity: ticketItem.quantity,
-      seatIds:
-  ticketItem.seatIds ||
-  (Array.isArray(ticketItem.seats) ? ticketItem.seats.map((s) => s.id) : []),
+      seatIds: allSeats,
+
 
     };
 
@@ -150,21 +167,43 @@ const CartPage: React.FC = () => {
       .then((data) => {
         console.log("Order placed successfully");
 
-        const confirmationData = {
-          movieTitle: ticketItem.name,
-          showtime: ticketItem.showtime,
-          theaterId: data.theater?.theaterNumber ?? data.theaterId,
-          seatIds: data.seatIds,
-          foodItems: cartItems
-            .filter((item) => item.food)
-            .map((item) => ({
-              name: item.food!.name,
-              price: item.food!.price,
-              quantity: item.quantity,
-            })),
-          totalPrice,
-          ticket: data.ticket, 
-        };
+        const storedLocation = localStorage.getItem("selectedLocation");
+const parsedLocation = storedLocation ? JSON.parse(storedLocation) : null;
+
+const confirmationData = {
+  id: Date.now(),
+  price: totalPrice,
+  userId: userId || null,
+  seats: ticketItems.flatMap((item) =>
+    (item.seats || []).map((s) => ({
+      seatId: s.id,
+      row: s.row,
+      column: s.column,
+    }))
+  ),
+  
+  theaterId: data.theater?.theaterNumber ?? data.theaterId,
+  purchaseTime: new Date().toISOString(),
+  ticket: {
+    id: data.ticket?.id ?? 0,
+    showtime: ticketItem.showtime,
+    movie: {
+      title: ticketItem.name
+        .replace(/\s*\([^)]+\)/, "")
+        .replace(/ - Seat [A-Z]+\d+$/, "")
+        .trim()
+    },
+        location: { name: parsedLocation?.name || "Unknown" },
+  },
+  foodItems: cartItems
+    .filter((item) => item.food)
+    .map((item) => ({
+      name: item.food!.name,
+      price: item.food!.price,
+      quantity: item.quantity,
+    })),
+};
+
         
 
         localStorage.setItem(
@@ -295,11 +334,20 @@ const CartPage: React.FC = () => {
               {cartItems.map((item) => (
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-details">
-  <div className="text-white font-medium">
-    {item.food
-      ? `${item.name} x${item.quantity}`
-      : item.name.replace(/ - Seat [A-Z]+\d+$/, "")}
-  </div>
+                  <div className="text-white font-medium">
+  {item.food
+    ? `${item.name} x${item.quantity}`
+    : `Movie: ${item.name
+        .replace(/\s*\([^)]+\)/, "")
+        .replace(/ - Seat [A-Z]+\d+$/, "")
+      }`
+  }
+</div>
+
+
+  {!item.food && locationName && (
+    <div>Location: {locationName}</div>
+  )}
 
   {!item.food && Array.isArray(item.seats) && item.seats.length === 1 && (
     <div>Seat: {rowToLetter(item.seats[0].row)}{item.seats[0].column}</div>
@@ -330,6 +378,7 @@ const CartPage: React.FC = () => {
     ${ (item.price * item.quantity).toFixed(2) }
   </div>
 </div>
+
 
                   <button
                     className="remove-button"
