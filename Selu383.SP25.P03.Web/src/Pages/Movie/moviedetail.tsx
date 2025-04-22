@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import { showtimeSchedule } from '../../Data/showtimeSchedule';
 
 interface Movie {
   id: number;
@@ -29,16 +30,10 @@ const styles = `
     padding: 0;
   }
 
-  header {
-    background-color: #121212;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-  }
-
   .ticket-button {
     background-color: var(--accent-color);
     color: var(--text-light);
-    padding: 12px 24px;
+    padding: 10px 16px;
     border-radius: 4px;
     font-weight: bold;
     transition: all 0.3s ease;
@@ -51,11 +46,18 @@ const styles = `
     transform: translateY(-2px);
   }
 
+  .showtime-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
   .movie-detail-wrapper {
     background-color: #1f1f1f;
     border-radius: 12px;
     padding: 2rem;
-    margin: 2rem auto;
+    margin: 1.5rem auto;
     max-width: 1000px;
     box-shadow: var(--card-shadow);
     display: flex;
@@ -95,11 +97,11 @@ const styles = `
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 2rem 0;
+    padding: 1rem 0;
   }
 
   .youtube-trailer {
-    margin-top: 2rem;
+    margin-top: 0.5rem;
     width: 100%;
     max-width: 1000px;
     height: 450px;
@@ -115,15 +117,15 @@ const styles = `
 `;
 
 const convertToEmbedUrl = (url?: string) => {
-    if (!url) return '';
-    const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/);
-    const videoId = match?.[1];
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
-  };
-  
+  if (!url) return '';
+  const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/);
+  const videoId = match?.[1];
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+};
 
 const MovieDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -147,6 +149,56 @@ const MovieDetail: React.FC = () => {
 
     fetchMovie();
   }, [id]);
+
+  const renderShowtimeButtons = () => {
+    const loc = localStorage.getItem("selectedLocation");
+    let locationId = null;
+
+    try {
+      locationId = JSON.parse(loc ?? '{}').id;
+    } catch {
+      console.warn("Failed to parse selectedLocation");
+    }
+
+    if (!locationId) {
+      return (
+        <p className="text-red-400 font-bold mt-4">
+          Please select a location and refresh the page.
+        </p>
+      );
+    }
+
+    const matchedShowtimes = showtimeSchedule.filter(
+      (entry) =>
+        Number(entry.movieId) === Number(id) &&
+        Number(entry.locationId) === Number(locationId)
+    );
+
+    if (matchedShowtimes.length === 0) {
+      return <p className="text-gray-400 mt-4">No showtimes available for this location.</p>;
+    }
+
+    return (
+      <div className="showtime-buttons">
+        {matchedShowtimes.map((entry, idx) => (
+          <button
+            key={idx}
+            className="ticket-button"
+            onClick={() =>
+              navigate(
+                `/seat-test?movieId=${id}&showtime=${encodeURIComponent(entry.time)}&locationId=${entry.locationId}&theaterId=${entry.theaterId}`
+              )
+            }
+          >
+            {new Date(entry.time).toLocaleTimeString([], {
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -177,12 +229,13 @@ const MovieDetail: React.FC = () => {
                   <p><span className="info-label">Rating:</span>{movie.rating}</p>
                   <p><span className="info-label">Release Date:</span>{new Date(movie.releaseDate).toDateString()}</p>
 
-                  <button className="ticket-button mt-6">Buy Tickets</button>
+                  <h3 className="text-lg font-semibold text-white mt-6">Select Showtime:</h3>
+                  {renderShowtimeButtons()}
                 </div>
               </div>
 
               {movie.youtubeUrl && (
-                <div className="youtube-trailer-container">
+                <div className="youtube-trailer-container mt-4">
                   <iframe
                     className="youtube-trailer"
                     src={convertToEmbedUrl(movie.youtubeUrl)}
