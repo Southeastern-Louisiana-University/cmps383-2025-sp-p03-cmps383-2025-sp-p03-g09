@@ -247,6 +247,24 @@ const styles = `
     color: white;
     border: none;
   }
+
+    .view-link {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-light);
+    margin-left: 1rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .view-link:hover {
+    color: var(--accent-color);
+  }
+
+  .view-link.active {
+    color: var(--accent-color);
+  }
+
 `;
 
 const MovieList: React.FC = () => {
@@ -256,6 +274,7 @@ const MovieList: React.FC = () => {
   const [error, setError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [view, setView] = useState<'now' | 'upcoming'>('now');
 
   const navigate = useNavigate();
   const isAdmin = user?.roles.includes('Admin');
@@ -316,6 +335,9 @@ const MovieList: React.FC = () => {
     }
   };
 
+  const nowShowing = movies.filter((m) => new Date(m.releaseDate) <= new Date());
+  const upcoming = movies.filter((m) => new Date(m.releaseDate) > new Date());
+
   return (
     <>
       <style>{styles}</style>
@@ -323,19 +345,36 @@ const MovieList: React.FC = () => {
         <Navbar />
         <main className="py-16">
           <section className="movies-container">
-            <div className="top-bar">
-              <h2 className="text-3xl font-bold text-white">Now Showing</h2>
-              {isAdmin && (
-                <button className="create-button" onClick={() => navigate('/movies/create')}>
-                  + Add Movie
-                </button>
-              )}
-            </div>
+          <div className="top-bar">
+          <div>
+            <h2 className="text-3xl font-bold inline">
+              <span
+                className={`view-link ${view === 'now' ? 'active' : ''}`}
+                onClick={() => setView('now')}
+              >
+                Now Showing
+              </span>
+              <span
+                className={`view-link ${view === 'upcoming' ? 'active' : ''}`}
+                onClick={() => setView('upcoming')}
+              >
+                Upcoming
+              </span>
+            </h2>
+          </div>
+
+          {isAdmin && (
+            <button className="create-button" onClick={() => navigate('/movies/create')}>
+              + Add Movie
+            </button>
+          )}
+        </div>
+
 
             {loading && <p className="text-center text-gray-400">Loading...</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
 
-            {movies.map((movie) => (
+            {(view === 'now' ? nowShowing : upcoming).map((movie) => (
               <div key={movie.id} className="movie-card mx-auto">
                 <img
                   src={movie.posterUrl || 'https://via.placeholder.com/250x370?text=No+Image'}
@@ -349,64 +388,76 @@ const MovieList: React.FC = () => {
                   </div>
                   <p className="text-gray-300 mb-4">{movie.description}</p>
 
-                  <div className="flex flex-col gap-2 mt-2">
-                  <span className="text-white font-medium">Select showtime:</span>
-                    <div className="flex gap-4">
-                    {(() => {
-  const loc = localStorage.getItem("selectedLocation");
-let locationId = null;
+                  {view === 'now' ? (
+                    <div className="flex flex-col gap-2 mt-2">
+                      <span className="text-white font-medium">Select showtime:</span>
+                      <div className="flex gap-4">
+                        {(() => {
+                          const loc = localStorage.getItem('selectedLocation');
+                          let locationId = null;
+                          try {
+                            locationId = JSON.parse(loc ?? '{}').id;
+                          } catch {
+                            console.warn('Failed to parse selectedLocation');
+                          }
 
-try {
-  locationId = JSON.parse(loc ?? '{}').id;
-} catch {
-  console.warn("Failed to parse selectedLocation");
-}
+                          if (!locationId) {
+                            return (
+                              <p className="text-red-400 font-bold">
+                                Please select a location and refresh.
+                              </p>
+                            );
+                          }
 
-if (!locationId) {
-  return (
-    <p className="text-red-400 font-bold">
-      Please select a location and refresh.
-    </p>
-  );
-}
+                          const matchedShowtimes = showtimeSchedule.filter(
+                            (entry) =>
+                              Number(entry.movieId) === Number(movie.id) &&
+                              Number(entry.locationId) === Number(locationId)
+                          );
 
-
-  const matchedShowtimes = showtimeSchedule.filter(
-    (entry) => Number(entry.movieId) === Number(movie.id) && Number(entry.locationId) === Number(locationId)
-  );
-  
-
-  return matchedShowtimes.map((entry, idx) => (
-    <button
-      key={idx}
-      className="ticket-button"
-      onClick={() =>
-        navigate(
-          `/seat-test?movieId=${movie.id}&showtime=${encodeURIComponent(entry.time)}&locationId=${entry.locationId}&theaterId=${entry.theaterId}`
-        )
-      }
-    >
-      {new Date(entry.time).toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-      })}
-    </button>
-  ));
-})()}
-
-                    </div>
-
-                    {isAdmin && (
-                      <div className="admin-buttons">
-                        <button className="edit-button" onClick={() => navigate(`/movies/${movie.id}/edit`)}>
-                          Modify
-                        </button>
-                        <button className="delete-button" onClick={() => confirmDelete(movie)}>
-                          Delete
-                        </button>
+                          return matchedShowtimes.map((entry, idx) => (
+                            <button
+                              key={idx}
+                              className="ticket-button"
+                              onClick={() =>
+                                navigate(
+                                  `/seat-test?movieId=${movie.id}&showtime=${encodeURIComponent(
+                                    entry.time
+                                  )}&locationId=${entry.locationId}&theaterId=${entry.theaterId}`
+                                )
+                              }
+                            >
+                              {new Date(entry.time).toLocaleTimeString([], {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                              })}
+                            </button>
+                          ));
+                        })()}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <p className="text-yellow-400 mt-2 font-semibold">
+                      Releases on {new Date(movie.releaseDate).toLocaleDateString()}
+                    </p>
+                  )}
+
+                  {isAdmin && (
+                    <div className="admin-buttons">
+                      <button
+                        className="edit-button"
+                        onClick={() => navigate(`/movies/${movie.id}/edit`)}
+                      >
+                        Modify
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() => confirmDelete(movie)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -420,8 +471,12 @@ if (!locationId) {
             <h3>Delete "{selectedMovie.title}"?</h3>
             <p>This action cannot be undone.</p>
             <div className="modal-buttons">
-              <button className="confirm" onClick={handleConfirmedDelete}>Confirm</button>
-              <button className="cancel" onClick={() => setShowConfirmModal(false)}>Cancel</button>
+              <button className="confirm" onClick={handleConfirmedDelete}>
+                Confirm
+              </button>
+              <button className="cancel" onClick={() => setShowConfirmModal(false)}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -114,6 +114,56 @@ namespace Selu383.SP25.P03.Api.Data
                         ReleaseDate = new DateTime(2025, 3, 28),
                         PosterUrl = "https://i.imgur.com/HXDE59T.jpeg",
                         YoutubeUrl = "https://www.youtube.com/watch?v=K2Df2g0Gl6o"
+                    },
+                    new Movie
+                    {
+                        Title = "Thunderbolts*",
+                        Duration = 127,
+                        Rating = "PG-13",
+                        Description = "After finding themselves ensnared in a death trap, seven disillusioned castoffs must embark on a dangerous mission that will force them to confront the darkest corners of their pasts.",
+                        ReleaseDate = new DateTime(2025, 5, 2),
+                        PosterUrl = "https://i.imgur.com/1NfJH2h.jpeg",
+                        YoutubeUrl = "https://www.youtube.com/watch?v=-sAOWhvheK8"
+                    },
+                    new Movie
+                    {
+                        Title = "The Surfer",
+                        Duration = 100,
+                        Rating = "R",
+                        Description = "A man returns to the idyllic beach of his childhood to surf with his son. But his desire to hit the waves is thwarted by a group of locals whose mantra is 'don't live here, don't surf here.' Humiliated and angry, the man is drawn into a conflict that keeps rising in concert with the punishing heat of the summer and pushes him to his breaking point.",
+                        ReleaseDate = new DateTime(2025, 5, 2),
+                        PosterUrl = "https://i.imgur.com/UgsS6bZ.jpeg",
+                        YoutubeUrl = "https://www.youtube.com/watch?v=A7Bo6cyfWho"
+                    },
+                    new Movie
+                    {
+                        Title = "Clown in a Cornfield",
+                        Duration = 96,
+                        Rating = "R",
+                        Description = "Quinn and her father have just moved to the quiet town of Kettle Springs hoping for a fresh start. Instead, she discovers a fractured community that has fallen on hard times after the treasured Baypen Corn Syrup Factory burned down. As the locals bicker amongst themselves and tensions boil over, a sinister, grinning figure emerges from the cornfields to cleanse the town of its burdens, one bloody victim at a time.",
+                        ReleaseDate = new DateTime(2025, 5, 9),
+                        PosterUrl = "https://i.imgur.com/U28yIHf.jpeg",
+                        YoutubeUrl = "https://www.youtube.com/watch?v=e69AWLED77w"
+                    },
+                    new Movie
+                    {
+                        Title = "Fight or Flight",
+                        Duration = 101,
+                        Rating = "R",
+                        Description = "A mercenary takes on the job of tracking down a target on a plane but must protect her when they're surrounded by people trying to kill both of them.",
+                        ReleaseDate = new DateTime(2025, 5, 9),
+                        PosterUrl = "https://i.imgur.com/bRlyqRA.jpeg",
+                        YoutubeUrl = "https://www.youtube.com/watch?v=SdsHRpjfqEI"
+                    },
+                    new Movie
+                    {
+                        Title = "Shadow Force",
+                        Duration = 104,
+                        Rating = "R",
+                        Description = "Kyrah and Isaac were once the leaders of a multinational special forces group called Shadow Force. They broke the rules by falling in love, and in order to protect their son, they go underground. With a large bounty on their heads, and the vengeful Shadow Force hot on their trail, one family's fight becomes all-out war.",
+                        ReleaseDate = new DateTime(2025, 5, 9),
+                        PosterUrl = "https://i.imgur.com/h61baCw.jpeg",
+                        YoutubeUrl = "https://www.youtube.com/watch?v=M7LhGytiHFM"
                     }
                     
                 );
