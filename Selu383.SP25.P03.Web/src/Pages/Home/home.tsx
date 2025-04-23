@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import { showtimeSchedule } from '../../Data/showtimeSchedule';
-
 
 interface Movie {
   id: number;
@@ -28,9 +27,6 @@ interface Location {
   address: string;
 }
 
-
-
-
 const styles = `
   :root {
     --primary-color: #000000;
@@ -48,55 +44,28 @@ const styles = `
   }
 
   .hero-section {
-    position: relative;
     background-color: #000000;
-    min-height: 600px;
+    min-height: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
-    z-index: 1;
-  }
-
-  .poster-scroll-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: max-content;
-    display: flex;
-    animation: scrollPosters 60s linear infinite;
-    z-index: 0;
-    opacity: 0.15;
-  }
-
-  @keyframes scrollPosters {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-
-  .poster-scroll-bg img {
-    height: 100%;
-    object-fit: cover;
-    margin-right: 10px;
+    padding: 0.5rem 0 0.25rem;
   }
 
   .hero-content {
-    position: relative;
-    z-index: 2;
     text-align: center;
   }
 
   .ticket-button {
     background-color: var(--accent-color);
     color: var(--text-light);
-    padding: 8px 20px; /* Reduced padding to make buttons less tall */
+    padding: 8px 20px;
     border-radius: 4px;
     font-weight: bold;
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
-    margin-right: 8px; /* Added margin to space buttons farther apart */
+    margin-right: 8px;
   }
 
   .ticket-button:hover {
@@ -104,66 +73,86 @@ const styles = `
     transform: translateY(-2px);
   }
 
-  .movie-card {
-    display: flex;
-    background-color: #1e1e1e;
-    border-radius: 8px;
-    box-shadow: var(--card-shadow);
-    overflow: hidden;
-    transition: transform 0.3s ease;
-  }
-
-  .movie-card:hover {
-    transform: translateY(-5px);
-  }
-
   .movie-poster {
-    width: 250px;
-    height: 100%;
+    width: 240px;
+    height: 360px;
     object-fit: cover;
+    border-radius: 12px;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .movie-poster:hover {
+    transform: scale(1.03);
   }
 
   .movie-details {
-    padding: 1rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    margin-top: 0.5rem;
+    text-align: center;
   }
 
-  .movies-container {
-    max-width: 100%;
-    margin: 0 auto;
+  .carousel-wrapper {
+    position: relative;
+    padding: 0 2rem;
+  }
+
+  .carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(30, 30, 30, 0.8);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .carousel-arrow.left {
+    left: 0;
+  }
+
+  .carousel-arrow.right {
+    right: 0;
+  }
+
+  .scroll-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+    padding: 1rem 0;
+    scrollbar-width: none;
+  }
+
+  .scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scroll-snap-align-center {
+    scroll-snap-align: center;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
   }
 
   .section-title {
     text-align: center;
-    margin-bottom: 2rem;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  main {
-    animation: fadeIn 0.5s ease-out forwards;
-    width: 100%;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    box-sizing: border-box;
-  }
-
-  .hero-title {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    text-align: center;
+    margin: 1rem 0 0.5rem;
+    font-size: 2rem;
   }
 
   @media (max-width: 768px) {
     .hero-title {
       font-size: 2rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
     }
   }
 
@@ -203,11 +192,11 @@ const styles = `
 
 const Home: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [posterUrls, setPosterUrls] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [, setSelectedLocation] = useState<Location | null>(null);
   const [showLocationModal, setShowLocationModal] = useState<boolean | null>(null);
   const navigate = useNavigate();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -215,8 +204,7 @@ const Home: React.FC = () => {
         const response = await fetch("/api/movies");
         if (!response.ok) throw new Error("Failed to fetch movies");
         const data = await response.json();
-        setMovies(data.slice(0, 3));
-        setPosterUrls(data.map((m: Movie) => m.posterUrl).filter(Boolean));
+        setMovies(data.slice(0, 10));
       } catch (err) {
         console.error(err);
       }
@@ -252,6 +240,36 @@ const Home: React.FC = () => {
     fetchLocations();
   }, []);
 
+  // Infinite Scroll Setup
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || movies.length === 0) return;
+
+    const cardWidth = 260; // poster + margin
+    const initialScroll = cardWidth * 2; // skip 2 clones
+    container.scrollLeft = initialScroll;
+
+    const handleScroll = () => {
+      const maxScroll = cardWidth * (movies.length + 2); // extended size
+
+      if (container.scrollLeft <= 0) {
+        container.scrollLeft = cardWidth * movies.length;
+      } else if (container.scrollLeft >= maxScroll - cardWidth) {
+        container.scrollLeft = cardWidth * 2;
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [movies]);
+
+  // Clone movies on both ends
+  const extendedMovies = [
+    ...movies.slice(-1),
+    ...movies,
+    ...movies.slice(0, -1),
+  ];
+
   return (
     <>
       <style>{styles}</style>
@@ -281,91 +299,55 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      <div className="min-h-screen bg-black w-full border-4 border-red-500">
+      <div className="min-h-screen bg-black w-full">
         <Navbar />
 
         <div className="hero-section">
-          <div className="poster-scroll-bg">
-            {[...posterUrls, ...posterUrls].map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt={`Poster ${idx}`}
-                onError={(e) => {
-                  e.currentTarget.src = "/fallback.jpg";
-                }}
-              />
-            ))}
-          </div>
-
           <div className="hero-content">
             <h2 className="hero-title">Welcome to Lion's Den Cinema</h2>
           </div>
         </div>
 
-        <main className="py-16">
-          <section className="movies-container px-4">
-            <h2 className="text-3xl font-bold section-title text-white">Featured Movies</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-              {movies.map((movie) => (
-                <div key={movie.id} className="movie-card w-full max-w-4xl mx-auto">
-                  <img src={movie.posterUrl} alt={movie.title} className="movie-poster" />
-                  <div className="movie-details">
-                    <h3 className="text-xl font-bold mb-2 text-white">{movie.title}</h3>
-                    <div className="text-sm text-gray-400 mb-2">
-                      <span>Runtime: {movie.duration} mins</span> • <span>Rating: {movie.rating}</span>
-                    </div>
-                    <p className="text-gray-300 mb-4">{movie.description}</p>
+        <main className="pb-10">
+          <section className="movies-container">
+            <h2 className="section-title text-white">🎬 Featured Movies</h2>
+            <div className="carousel-wrapper">
+              <button
+                className="carousel-arrow left"
+                onClick={() => {
+                  const container = scrollRef.current;
+                  if (container) container.scrollBy({ left: -260, behavior: 'smooth' });
+                }}
+              >
+                ←
+              </button>
 
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-white font-medium">Select showtime:</span>
-                      <div className="flex gap-4">
-                        {(() => {
-                          const loc = localStorage.getItem("selectedLocation");
-                          let locationId = null;
-
-                          try {
-                            locationId = JSON.parse(loc ?? '{}').id;
-                          } catch {
-                            console.warn("Failed to parse selectedLocation");
-                          }
-
-                          if (!locationId) {
-                            return (
-                              <p className="text-red-400 font-bold">
-                                Please select a location and refresh.
-                              </p>
-                            );
-                          }
-
-                          const matchedShowtimes = showtimeSchedule.filter(
-                            (entry) =>
-                              Number(entry.movieId) === Number(movie.id) &&
-                              Number(entry.locationId) === Number(locationId)
-                          );
-
-                          return matchedShowtimes.map((entry, idx) => (
-                            <button
-                              key={idx}
-                              className="ticket-button"
-                              onClick={() =>
-                                navigate(
-                                  `/seat-test?movieId=${movie.id}&showtime=${encodeURIComponent(entry.time)}&locationId=${entry.locationId}&theaterId=${entry.theaterId}`
-                                )
-                              }
-                            >
-                              {new Date(entry.time).toLocaleTimeString([], {
-                                hour: "numeric",
-                                minute: "2-digit",
-                              })}
-                            </button>
-                          ));
-                        })()}
-                      </div>
+              <div id="movie-scroll" ref={scrollRef} className="scroll-container">
+                {extendedMovies.map((movie, idx) => (
+                  <div key={idx} className="scroll-snap-align-center">
+                    <img
+                      src={movie.posterUrl}
+                      alt={movie.title}
+                      className="movie-poster"
+                      onClick={() => navigate(`/movies/${movie.id}`)}
+                    />
+                    <div className="movie-details">
+                      <h3 className="text-lg font-bold text-white">{movie.title}</h3>
+                      <p className="text-sm text-gray-400">{movie.duration} mins • {movie.rating}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              <button
+                className="carousel-arrow right"
+                onClick={() => {
+                  const container = scrollRef.current;
+                  if (container) container.scrollBy({ left: 260, behavior: 'smooth' });
+                }}
+              >
+                →
+              </button>
             </div>
           </section>
         </main>
