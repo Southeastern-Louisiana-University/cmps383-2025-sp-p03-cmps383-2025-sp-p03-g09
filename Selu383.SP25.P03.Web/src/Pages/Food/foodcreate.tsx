@@ -35,6 +35,7 @@ const CreateFood: React.FC = () => {
     locationId: 0
   });
   const [error, setError] = useState('');
+  const [applyToAllLocations, setApplyToAllLocations] = useState(false);
 
   useEffect(() => {
     fetch('/api/authentication/me', { credentials: 'include' })
@@ -53,13 +54,15 @@ const CreateFood: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, type, value } = e.target;
-  
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      setForm(prev => ({
-        ...prev,
-        [name]: checked
-      }));
+
+      if (name === "applyToAllLocations") {
+        setApplyToAllLocations(checked);
+      } else {
+        setForm(prev => ({ ...prev, [name]: checked }));
+      }
     } else {
       setForm(prev => ({
         ...prev,
@@ -67,21 +70,36 @@ const CreateFood: React.FC = () => {
       }));
     }
   };
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch('/api/fooditems', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(form)
-    });
+    try {
+      if (applyToAllLocations) {
+        for (const loc of locations) {
+          const response = await fetch('/api/fooditems', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ ...form, locationId: loc.id })
+          });
 
-    if (response.ok) {
+          if (!response.ok) throw new Error("Failed on location: " + loc.name);
+        }
+      } else {
+        const response = await fetch('/api/fooditems', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(form)
+        });
+
+        if (!response.ok) throw new Error("Single-location create failed");
+      }
+
       navigate('/food');
-    } else {
+    } catch (err) {
+      console.error(err);
       setError('Failed to create food item. Make sure all fields are valid.');
     }
   };
@@ -186,12 +204,24 @@ const CreateFood: React.FC = () => {
 
             <div className="input-group">
               <label htmlFor="locationId">Location</label>
-              <select name="locationId" value={form.locationId} onChange={handleChange} required>
+              <select name="locationId" value={form.locationId} onChange={handleChange} required disabled={applyToAllLocations}>
                 <option value="">-- Select Location --</option>
                 {locations.map(loc => (
                   <option key={loc.id} value={loc.id}>{loc.name}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="input-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="applyToAllLocations"
+                  checked={applyToAllLocations}
+                  onChange={handleChange}
+                />
+                &nbsp;Apply to All Locations
+              </label>
             </div>
 
             <div className="input-group">

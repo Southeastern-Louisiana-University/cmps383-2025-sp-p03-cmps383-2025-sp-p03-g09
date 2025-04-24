@@ -176,7 +176,14 @@ const MovieEdit: React.FC = () => {
 
             <div className="input-group">
               <label htmlFor="releaseDate">Release Date</label>
-              <input type="date" name="releaseDate" value={form.releaseDate} onChange={handleChange} required />
+              <input
+                type="date"
+                name="releaseDate"
+                value={form.releaseDate.slice(0, 10)}
+                onChange={handleChange}
+                required
+              />
+
             </div>
 
             <div className="input-group">

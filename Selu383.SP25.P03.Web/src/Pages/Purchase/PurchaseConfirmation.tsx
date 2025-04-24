@@ -153,7 +153,7 @@ const PurchaseConfirmation: React.FC = () => {
 
           {Array.isArray(foodItems) && foodItems.length > 0 && (
             <div>
-              <strong>Food:</strong>
+              <strong>Food/Drink:</strong>
               <ul className="food-list">
                 {foodItems.map((item: FoodItem, i: number) => (
                   <li key={i}>
