@@ -92,7 +92,7 @@ const Signup: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          username,
+          userName: username,
           password,
           roles: [selectedRole]
         })
