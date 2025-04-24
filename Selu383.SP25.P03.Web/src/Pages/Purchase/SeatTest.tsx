@@ -167,9 +167,7 @@ const SeatTest: React.FC = () => {
 
       return (
         <div key={rowNum} style={{ display: "flex", marginBottom: "6px", justifyContent: "center" }}>
-          <div style={{ width: "40px", textAlign: "right", marginRight: "8px" }}>
-            {rowToLetter(rowNum)}
-          </div>
+          
           {rowSeats.map((seat) => {
             const isSelected = selectedSeats.some((s) => s.id === seat.id);
             const isTaken = takenSeatIds.includes(seat.id);
@@ -186,7 +184,7 @@ const SeatTest: React.FC = () => {
                 : isTaken
                 ? "#DC2626"
                 : "#10B981",
-              color: "white",
+              color: "#ffffff",
               border: "none"
             };
 
@@ -221,7 +219,7 @@ const SeatTest: React.FC = () => {
               padding: "12px 24px",
               borderRadius: "6px",
               fontSize: "1rem",
-              color: "white",
+              color: "#ffffff !important",
               cursor: selectedSeats.length === 0 ? "not-allowed" : "pointer",
               opacity: selectedSeats.length === 0 ? 0.6 : 1
             }}

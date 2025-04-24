@@ -30,9 +30,18 @@ const styles = `
   :root {
     --primary-color: #000000;
     --accent-color: #10b981;
-    --text-light: #ffffff;
+    --text-light: #ffffff !important;
     --text-dark: #121212;
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  * {
+    color: var(--text-light);
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
   }
 
   body {
@@ -101,7 +110,7 @@ const styles = `
     top: 50%;
     transform: translateY(-50%);
     background-color: rgba(30, 30, 30, 0.8);
-    color: white;
+    color: #ffffff !important;
     border: none;
     padding: 0.75rem 1rem;
     font-size: 1.25rem;
@@ -138,12 +147,16 @@ const styles = `
     font-size: 2.5rem;
     font-weight: bold;
     margin: 0;
+    color: #ffffff !important;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
   }
 
   .section-title {
     text-align: center;
     margin: 1rem 0 0.5rem;
     font-size: 2rem;
+    color: #ffffff !important;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
   }
 
   @media (max-width: 768px) {
@@ -173,11 +186,13 @@ const styles = `
     background-color: #1e1e1e;
     padding: 2rem;
     border-radius: 10px;
-    color: white;
+    color: #ffffff !important;
     max-width: 400px;
     width: 90%;
     text-align: center;
     box-shadow: var(--card-shadow);
+    font-weight: 500;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
   }
 
   .modal-content ul li {
@@ -188,6 +203,7 @@ const styles = `
     margin-bottom: 0;
   }
 `;
+
 
 const Home: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -239,17 +255,16 @@ const Home: React.FC = () => {
     fetchLocations();
   }, []);
 
-  // Infinite Scroll Setup
   useEffect(() => {
     const container = scrollRef.current;
     if (!container || movies.length === 0) return;
 
-    const cardWidth = 260; // poster + margin
-    const initialScroll = cardWidth * 2; // skip 2 clones
+    const cardWidth = 260; 
+    const initialScroll = cardWidth * 2; 
     container.scrollLeft = initialScroll;
 
     const handleScroll = () => {
-      const maxScroll = cardWidth * (movies.length + 2); // extended size
+      const maxScroll = cardWidth * (movies.length + 2);
 
       if (container.scrollLeft <= 0) {
         container.scrollLeft = cardWidth * movies.length;
@@ -262,7 +277,6 @@ const Home: React.FC = () => {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [movies]);
 
-  // Clone movies on both ends
   const extendedMovies = [
     ...movies.slice(-1),
     ...movies,
@@ -309,7 +323,7 @@ const Home: React.FC = () => {
 
         <main className="pb-10">
           <section className="movies-container">
-            <h2 className="section-title text-white">🎬 Featured Movies</h2>
+            <h2 className="section-title text-white">Featured Movies</h2>
             <div className="carousel-wrapper">
               <button
                 className="carousel-arrow left"

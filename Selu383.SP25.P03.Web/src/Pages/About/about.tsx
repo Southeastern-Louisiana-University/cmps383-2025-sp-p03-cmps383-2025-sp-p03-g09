@@ -73,6 +73,19 @@ const styles = `
       margin-top: 1rem;
     }
   }
+
+  .about-container,
+  .about-container h1,
+  .about-container h2,
+  .about-container p,
+  .section-paragraph,
+  .contact-box,
+  .contact-box p,
+  .contact-box strong {
+    color: #ffffff !important;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
 `;
 
 const About: React.FC = () => {

@@ -125,6 +125,18 @@ const PurchaseConfirmation: React.FC = () => {
         .back-button:hover {
           background-color: #2f855a;
         }
+
+        .confirmation-box,
+        .confirmation-box h1,
+        .confirmation-box p,
+        .confirmation-box strong,
+        .confirmation-box div,
+        .confirmation-box li,
+        .food-list {
+          color: #ffffff !important;
+          text-shadow: 0 0 1px rgba(255, 255, 255, 0.15);
+        }
+
       `}</style>
 
       <div className="confirmation-wrapper">

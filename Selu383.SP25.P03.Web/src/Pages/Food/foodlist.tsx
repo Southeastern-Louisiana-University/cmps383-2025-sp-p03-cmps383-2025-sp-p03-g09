@@ -255,6 +255,24 @@ const styles = `
     color: white;
     border: none;
   }
+
+  .food-container,
+  .food-title,
+  .food-name,
+  .food-description,
+  .food-price,
+  .vegan-tag,
+  .location-tag,
+  .food-card,
+  .card-buttons button,
+  .modal-content,
+  .modal-content h3,
+  .modal-content p,
+  .modal-buttons button {
+    color: #ffffff !important;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.15);
+  }
+
 `;
 
 const FoodList: React.FC = () => {

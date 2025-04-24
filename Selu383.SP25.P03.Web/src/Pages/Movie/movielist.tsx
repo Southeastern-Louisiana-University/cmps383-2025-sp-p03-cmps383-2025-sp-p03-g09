@@ -29,8 +29,16 @@ const styles = `
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
-  body {
+  * {
     color: var(--text-light);
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+  }
+
+  body {
     background-color: var(--primary-color);
     margin: 0;
     padding: 0;
@@ -51,7 +59,7 @@ const styles = `
 
   .ticket-button {
     background-color: var(--accent-color);
-    color: var(--text-light);
+    color: #ffffff;
     padding: 8px 20px;
     border-radius: 4px;
     font-weight: bold;
@@ -59,6 +67,7 @@ const styles = `
     border: none;
     cursor: pointer;
     margin-right: 8px;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.3);
   }
 
   .ticket-button:hover {
@@ -104,16 +113,16 @@ const styles = `
     gap: 2rem;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
   main {
     animation: fadeIn 0.5s ease-out forwards;
     width: 100%;
     padding: 1rem;
     box-sizing: border-box;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .cinema-logo {
@@ -149,7 +158,7 @@ const styles = `
 
   .create-button {
     background-color: var(--accent-color);
-    color: var(--text-light);
+    color: #ffffff;
     padding: 10px 16px;
     font-size: 1rem;
     font-weight: bold;
@@ -157,6 +166,7 @@ const styles = `
     border: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.3);
   }
 
   .create-button:hover {
@@ -169,11 +179,25 @@ const styles = `
     align-items: center;
     margin-bottom: 2rem;
   }
+  
+  .description {
+  font-size: .92rem; 
+  font-weight: 400;
+  color: #ffffff !important; 
+  line-height: 1.5;
+  text-shadow: none;
+}
+
 
   .admin-buttons {
     display: flex;
     gap: 10px;
     margin-top: 1rem;
+  }
+
+  .edit-button, .delete-button {
+    font-weight: bold;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
   }
 
   .edit-button {
@@ -220,6 +244,9 @@ const styles = `
     max-width: 400px;
     text-align: center;
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+    color: #ffffff !important;
+    font-weight: 500;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
   }
 
   .modal-buttons {
@@ -234,6 +261,7 @@ const styles = `
     font-weight: bold;
     border-radius: 5px;
     cursor: pointer;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
   }
 
   .modal-buttons .confirm {
@@ -248,24 +276,22 @@ const styles = `
     border: none;
   }
 
-    .view-link {
+  .view-link {
     font-size: 1.875rem;
     font-weight: 700;
-    color: var(--text-light);
+    color: #ffffff;
     margin-left: 1rem;
     cursor: pointer;
     transition: color 0.3s ease;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
   }
 
-  .view-link:hover {
-    color: var(--accent-color);
-  }
-
+  .view-link:hover,
   .view-link.active {
     color: var(--accent-color);
   }
-
 `;
+
 
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -383,11 +409,12 @@ const MovieList: React.FC = () => {
                 />
                 <div className="movie-details">
                   <h3 className="text-2xl font-bold mb-2 text-white">{movie.title}</h3>
+                  <div className="description">
                   <div className="text-sm text-gray-400 mb-2">
                     <span>Runtime: {movie.duration} mins</span> • <span>Rating: {movie.rating}</span>
                   </div>
                   <p className="text-gray-300 mb-4">{movie.description}</p>
-
+                  </div>
                   {view === 'now' ? (
                     <div className="flex flex-col gap-2 mt-2">
                       <span className="text-white font-medium">Select showtime:</span>
