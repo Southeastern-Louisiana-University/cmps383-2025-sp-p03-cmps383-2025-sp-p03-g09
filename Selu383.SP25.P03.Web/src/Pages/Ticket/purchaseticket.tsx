@@ -293,6 +293,19 @@ const PurchaseTicket: React.FC = () => {
         .clear-cart-button:hover {
           background-color: #666;
         }
+
+        .cart-section,
+        .cart-item-details,
+        .food-item,
+        .food-details,
+        .bg-gray-900,
+        .food-name,
+        .food-price {
+          color: #ffffff !important;
+          text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
+          font-weight: 500;
+}
+
       `}</style>
 
       <div className="purchase-container">

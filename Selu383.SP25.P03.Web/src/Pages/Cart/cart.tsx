@@ -321,6 +321,18 @@ const confirmationData = {
         .clear-button:hover {
           background-color: #10b981;
         }
+
+        .cart-box,
+        .cart-container,
+        .cart-item,
+        .cart-item-details,
+        .cart-item-details div,
+        .cart-item-details span,
+        .text-white {
+          color: #ffffff !important;
+          text-shadow: 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
       `}</style>
 
       <div className="cart-container">

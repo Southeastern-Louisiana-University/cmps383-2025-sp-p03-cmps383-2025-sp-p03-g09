@@ -201,6 +201,21 @@ const PurchaseHistory: React.FC = () => {
           margin-left: 1rem;
           list-style: disc;
         }
+
+        .history-box,
+        .history-box h1,
+        .order-item,
+        .order-item h2,
+        .order-item p,
+        .order-item strong,
+        .order-item div,
+        .order-detail,
+        .food-list,
+        .food-list li {
+          color: #ffffff !important;
+          text-shadow: 0 0 1px rgba(255, 255, 255, 0.15);
+        }
+
       `}</style>
 
       <div className="history-container">
