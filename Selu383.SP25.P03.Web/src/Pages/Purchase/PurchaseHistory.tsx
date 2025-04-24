@@ -257,7 +257,7 @@ const PurchaseHistory: React.FC = () => {
                   <strong>Theater:</strong> {order.theaterId || "N/A"}
                 </p>
                 <div className="order-detail">
-                  <strong>Food Items:</strong> {renderFoodItems(order.foodItems)}
+                  <strong>Food/Drink:</strong> {renderFoodItems(order.foodItems)}
                 </div>
                 <p className="order-detail">
                   <strong>Purchase Time:</strong>{" "}

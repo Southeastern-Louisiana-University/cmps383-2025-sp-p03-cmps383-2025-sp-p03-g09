@@ -299,24 +299,53 @@ const FoodList: React.FC = () => {
         console.error('Failed to fetch user info.');
       }
     };
-
+  
     const fetchFoodItems = async () => {
       try {
-        const response = await fetch('/api/fooditems');
+        const loc = localStorage.getItem("selectedLocation");
+        let locationId = null;
+        try {
+          locationId = JSON.parse(loc ?? "{}").id;
+        } catch {
+          console.warn("Could not parse selected location from localStorage");
+        }
+  
+        if (!locationId) {
+          setError("No location selected. Please select a location.");
+          setLoading(false);
+          return;
+        }
+  
+        const response = await fetch(`/api/fooditems`);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.json();
-        setFoods(data);
+        const allFood = await response.json();
+  
+        const filtered = allFood.filter((item: any) => item.locationId === locationId);
+        setFoods(filtered);
       } catch (err) {
-        setError('Failed to load food items.');
         console.error(err);
+        setError("Failed to load food items.");
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchUser();
     fetchFoodItems();
+  
+    const handleLocationChange = () => {
+      fetchFoodItems();
+    };
+  
+    window.addEventListener('locationChanged', handleLocationChange);
+    window.addEventListener('storage', handleLocationChange);
+  
+    return () => {
+      window.removeEventListener('locationChanged', handleLocationChange);
+      window.removeEventListener('storage', handleLocationChange);
+    };
   }, []);
+  
 
   const confirmDelete = (item: FoodItem) => {
     setSelectedItem(item);
@@ -352,6 +381,8 @@ const FoodList: React.FC = () => {
 
       <div className="min-h-screen bg-black text-white">
         <Navbar />
+        
+
         <div className="food-container">
           <div className="food-title-bar">
             <h1 className="food-title">Concession Menu</h1>
