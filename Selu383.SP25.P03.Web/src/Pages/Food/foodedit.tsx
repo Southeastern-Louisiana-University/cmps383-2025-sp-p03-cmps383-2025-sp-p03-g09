@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 
 interface FoodForm {
+  id?: number;
   name: string;
   price: number;
   description: string;
@@ -36,6 +37,7 @@ const FoodEdit: React.FC = () => {
     locationId: 0
   });
   const [error, setError] = useState('');
+  const [applyToAllLocations, setApplyToAllLocations] = useState(false);
 
   useEffect(() => {
     fetch('/api/authentication/me', { credentials: 'include' })
@@ -51,9 +53,7 @@ const FoodEdit: React.FC = () => {
       fetch(`/api/fooditems/${id}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
-          if (data) {
-            setForm(data);
-          }
+          if (data) setForm(data);
         });
     }
   }, [id]);
@@ -66,7 +66,11 @@ const FoodEdit: React.FC = () => {
     const { name, type, value } = e.target;
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      setForm(prev => ({ ...prev, [name]: checked }));
+      if (name === 'applyToAllLocations') {
+        setApplyToAllLocations(checked);
+      } else {
+        setForm(prev => ({ ...prev, [name]: checked }));
+      }
     } else {
       setForm(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) : value }));
     }
@@ -75,16 +79,33 @@ const FoodEdit: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch(`/api/fooditems/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(form)
-    });
+    try {
+      if (applyToAllLocations) {
+        // Get all food items with same name across locations
+        const allItems: FoodForm[] = await fetch('/api/fooditems').then(res => res.json());
+        const matchingItems = allItems.filter(item => item.name === form.name);
 
-    if (response.ok) {
+        for (const item of matchingItems) {
+          await fetch(`/api/fooditems/${item.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ ...form, locationId: item.locationId }) // preserve each item's location
+          });
+        }
+      } else {
+        const response = await fetch(`/api/fooditems/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(form)
+        });
+
+        if (!response.ok) throw new Error();
+      }
+
       navigate('/food');
-    } else {
+    } catch {
       setError('Failed to update food item. Make sure all fields are valid.');
     }
   };
@@ -189,12 +210,24 @@ const FoodEdit: React.FC = () => {
 
             <div className="input-group">
               <label htmlFor="locationId">Location</label>
-              <select name="locationId" value={form.locationId} onChange={handleChange} required>
+              <select name="locationId" value={form.locationId} onChange={handleChange} required disabled={applyToAllLocations}>
                 <option value="">-- Select Location --</option>
                 {locations.map(loc => (
                   <option key={loc.id} value={loc.id}>{loc.name}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="input-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="applyToAllLocations"
+                  checked={applyToAllLocations}
+                  onChange={handleChange}
+                />
+                &nbsp;Apply changes to all locations
+              </label>
             </div>
 
             <div className="input-group">
