@@ -44,21 +44,21 @@ const styles = `
     font-size: 1rem;
   }
 
-  .login-button {
-    width: 100%;
-    padding: 10px;
+   .login-button:hover {
     background-color: #10b981;
-    color: white;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
   }
-
-  .login-button:hover {
-    background-color: #10b981;
+  .signup-link {
+    margin-top: 1rem;
+    color: #ccc;
+    font-size: 0.95rem;
+  }
+  .signup-link a {
+    color: #10b981;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .signup-link a:hover {
+    text-decoration: underline;
   }
 
   @keyframes fadeIn {
@@ -117,6 +117,12 @@ const Login: React.FC = () => {
             Login
           </button>
         </form>
+        <p className="signup-link">
+          Don’t have an account?{' '}
+          <a onClick={() => navigate('/signup')} style={{ cursor: 'pointer' }}>
+            Sign Up Here
+          </a>
+        </p>
       </div>
     </>
   );

@@ -16,6 +16,7 @@ import FoodCreate from './Pages/Food/foodcreate';
 import MovieEdit from './Pages/Movie/movieedit';
 import FoodEdit from './Pages/Food/foodedit';
 import SeatTest from './Pages/Purchase/SeatTest';
+import Signup from './Pages/Account/Signup';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         <Route path="/movies/:id/edit" element={<MovieEdit />} />
         <Route path="/food/:id/edit" element={<FoodEdit />} />
         <Route path="/seat-test" element={<SeatTest />} />
+        <Route path="/signup" element={<Signup />} />
       </Routes>
     </Router>
   );
