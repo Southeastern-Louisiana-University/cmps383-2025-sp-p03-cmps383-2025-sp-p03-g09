@@ -1,14 +1,24 @@
-// app/(tabs)/index.tsx
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity, FlatList, ActivityIndicator, Modal } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+  Dimensions,
+  RefreshControl
+} from 'react-native';
 import { router } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Define types for our data
 interface Movie {
-  id: string;
+  id: number;
   title: string;
   posterUrl: string;
   description: string;
@@ -33,127 +43,198 @@ interface Location {
   address: string;
 }
 
+const moviesData: Movie[] = [
+  {
+    id: 1,
+    title: "Captain America: Brave New World",
+    duration: 119,
+    rating: "PG-13",
+    description: "A thief who steals corporate secrets through dream-sharing technology. After meeting with newly elected U.S. President Thaddeus Ross, Sam finds himself in the middle of an international incident...",
+    releaseDate: "2025-02-14",
+    posterUrl: "https://i.imgur.com/kpvUnbB.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=5PSzFLV-EyQ"
+  },
+  {
+    id: 2,
+    title: "Novocaine",
+    duration: 109,
+    rating: "R",
+    description: "When the girl of his dreams is kidnapped, everyman Nate turns his inability to feel pain into an unexpected strength in his fight to get her back.",
+    releaseDate: "2025-03-14",
+    posterUrl: "https://i.imgur.com/lvhe19y.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=99BLnkAlC1M"
+  },
+  {
+    id: 3,
+    title: "Snow White",
+    duration: 109,
+    rating: "PG",
+    description: "Princess Snow White flees the castle when the Evil Queen, in her jealousy over Snow White's inner beauty, tries to kill her...",
+    releaseDate: "2025-03-21",
+    posterUrl: "https://i.imgur.com/xCNOH4U.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=KsSoo5K8CpA"
+  },
+  {
+    id: 4,
+    title: "A Minecraft Movie",
+    duration: 100,
+    rating: "PG",
+    description: "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve.",
+    releaseDate: "2025-04-04",
+    posterUrl: "https://i.imgur.com/CtiItHl.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=8B1EtVPBSMw"
+  },
+  {
+    id: 5,
+    title: "The Amateur",
+    duration: 123,
+    rating: "PG-13",
+    description: "After his life is turned upside down when his wife is killed in a London terrorist attack, a brilliant but introverted CIA decoder takes matters into his own hands when his supervisors refuse to take action.",
+    releaseDate: "2025-04-11",
+    posterUrl: "https://i.imgur.com/82JHVqU.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=DCWcK4c-F8Q"
+  },
+  {
+    id: 6,
+    title: "A Working Man",
+    duration: 116,
+    rating: "R",
+    description: "Levon Cade left behind a decorated military career in the black ops to live a simple life working construction. But when his boss's daughter, who is like family to him, is taken by human traffickers, his search to bring her home uncovers a world of corruption far greater than he ever could have imagined.",
+    releaseDate: "2025-03-28",
+    posterUrl: "https://i.imgur.com/oPNz3zp.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=mdfrG2cLK58"
+  },
+  {
+    id: 7,
+    title: "The King of Kings",
+    duration: 104,
+    rating: "PG",
+    description: "A father tells his son the greatest story ever told, and what begins as a bedtime tale becomes a life-changing journey. Through vivid imagination, the boy walks alongside Jesus, witnessing His miracles, facing His trials, and understanding His ultimate sacrifice.",
+    releaseDate: "2025-04-11",
+    posterUrl: "https://i.imgur.com/hvZ9Aql.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=HkGZ4ykhYPg"
+  },
+  {
+    id: 8,
+    title: "Death of a Unicorn",
+    duration: 107,
+    rating: "R",
+    description: "A father and daughter accidentally hit and kill a unicorn while en route to a weekend retreat, where his billionaire boss seeks to exploit the creature's miraculous curative properties.",
+    releaseDate: "2025-03-28",
+    posterUrl: "https://i.imgur.com/EYeLcGS.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=aQOle3MHnGs"
+  },
+  {
+    id: 9,
+    title: "Sacramento",
+    duration: 89,
+    rating: "R",
+    description: "When free-spirited Ricky suddenly reappears in father-to-be Glenn's life, the two former best friends embark on a spontaneous road trip from LA to Sacramento.",
+    releaseDate: "2025-04-11",
+    posterUrl: "https://i.imgur.com/6V0N9Rg.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=jZRbFs_WhX0"
+  },
+  {
+    id: 10,
+    title: "The Friend",
+    duration: 120,
+    rating: "R",
+    description: "Writer and teacher Iris finds her comfortable, solitary New York life thrown into disarray after her closest friend and mentor bequeaths her his beloved 150 lb. Great Dane named Apollo.",
+    releaseDate: "2025-03-28",
+    posterUrl: "https://i.imgur.com/HXDE59T.jpeg",
+    youtubeUrl: "https://www.youtube.com/watch?v=K2Df2g0Gl6o"
+  }
+];
+
+// Hardcoded location data
+const locationsData: Location[] = [
+  {
+    id: 1,
+    name: "Lion's Den New York",
+    address: "570 2nd Ave, New York, NY 10016"
+  },
+  {
+    id: 2,
+    name: "Lion's Den New Orleans",
+    address: "636 N Broad St, New Orleans, LA 70119"
+  },
+  {
+    id: 3,
+    name: "Lion's Den Los Angeles",
+    address: "4020 Marlton Ave, Los Angeles, CA 90008"
+  }
+];
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const POSTER_WIDTH = SCREEN_WIDTH * 0.42; 
+const POSTER_HEIGHT = POSTER_WIDTH * 1.5; 
+
 export default function HomeScreen() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   useEffect(() => {
-    // Show location modal by default
-    setShowLocationModal(true);
-
-    const fetchData = async () => {
-      setTimeout(() => {
-        // Mock locations data
-        const locationsData = [
-          { id: 1, name: "Lion's Den New York", address: "570 2nd Ave, New York, NY 10016" },
-          { id: 2, name: "Lion's Den New Orleans", address: '636 N Broad St, New Orleans, LA 70119' },
-          { id: 3, name: "Lion's Den Los Angeles", address: '4020 Marlton Ave, Los Angeles, CA 90008' }
-        ];
-        
-        const moviesData = [
-          {
-            id: '1',
-            title: 'Captain America: Brave New World',
-            posterUrl: 'https://i.imgur.com/kpvUnbB.jpeg',
-            description: 'A thief who steals corporate secrets through dream-sharing technology. After meeting with newly elected U.S. President Thaddeus Ross, Sam finds himself in the middle of an international incident...',
-            duration: 119,
-            rating: 'PG-13',
-            releaseDate: '2025-02-14',
-            youtubeUrl: 'https://www.youtube.com/watch?v=5PSzFLV-EyQ',
-            showtimes: [
-              { id: 1, time: '12:00PM', date: '2025-04-09', theater: 'Theater 1', availableSeats: 120 },
-              { id: 2, time: '3:00PM', date: '2025-04-09', theater: 'Theater 1', availableSeats: 110 },
-              { id: 3, time: '6:00PM', date: '2025-04-09', theater: 'Theater 2', availableSeats: 90 },
-              { id: 4, time: '9:00PM', date: '2025-04-09', theater: 'Theater 3', availableSeats: 150 }
-            ]
-          },
-          {
-            id: '2',
-            title: 'Novocaine',
-            posterUrl: 'https://i.imgur.com/lvhe19y.jpeg',
-            description: 'When the girl of his dreams is kidnapped, everyman Nate turns his inability to feel pain into an unexpected strength in his fight to get her back.',
-            duration: 109,
-            rating: 'R',
-            releaseDate: '2025-03-14',
-            youtubeUrl: 'https://www.youtube.com/watch?v=99BLnkAlC1M',
-            showtimes: [
-              { id: 5, time: '1:00PM', date: '2025-04-09', theater: 'Theater 4', availableSeats: 130 },
-              { id: 6, time: '4:00PM', date: '2025-04-09', theater: 'Theater 5', availableSeats: 120 },
-              { id: 7, time: '7:00PM', date: '2025-04-09', theater: 'Theater 1', availableSeats: 100 },
-              { id: 8, time: '10:00PM', date: '2025-04-09', theater: 'Theater 2', availableSeats: 85 }
-            ]
-          },
-          {
-            id: '3',
-            title: 'Snow White',
-            posterUrl: 'https://i.imgur.com/xCNOH4U.jpeg',
-            description: 'Princess Snow White flees the castle when the Evil Queen, in her jealousy over Snow White\'s inner beauty, tries to kill her...',
-            duration: 109,
-            rating: 'PG',
-            releaseDate: '2025-03-21',
-            youtubeUrl: 'https://www.youtube.com/watch?v=KsSoo5K8CpA',
-            showtimes: [
-              { id: 9, time: '12:30PM', date: '2025-04-09', theater: 'Theater 3', availableSeats: 140 },
-              { id: 10, time: '3:30PM', date: '2025-04-09', theater: 'Theater 4', availableSeats: 125 },
-              { id: 11, time: '6:30PM', date: '2025-04-09', theater: 'Theater 5', availableSeats: 110 },
-              { id: 12, time: '9:30PM', date: '2025-04-09', theater: 'Theater 1', availableSeats: 95 }
-            ]
+    // Use hardcoded data instead of API calls
+    setMovies(moviesData);
+    setLocations(locationsData);
+    
+    // Check for stored location
+    const checkStoredLocation = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("selectedLocation");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const valid = locationsData.find((loc: Location) => loc.id === parsed.id);
+          if (valid) {
+            setSelectedLocation(valid);
+            setShowLocationModal(false);
+          } else {
+            await AsyncStorage.removeItem("selectedLocation");
+            setShowLocationModal(true);
           }
-        ];
-        
-        setLocations(locationsData);
-        setMovies(moviesData);
+        } else {
+          setShowLocationModal(true);
+        }
+      } catch (err) {
+        console.error(err);
+        setShowLocationModal(true);
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
-
-    fetchData();
+    
+    checkStoredLocation();
   }, []);
 
-  const selectLocation = (location: Location) => {
-    setSelectedLocation(location);
-    setShowLocationModal(false);
+  const onRefresh = () => {
+    setRefreshing(true);
+    // Simulate refresh by setting the same data again after a delay
+    setTimeout(() => {
+      setMovies([...moviesData]);
+      setRefreshing(false);
+    }, 1000);
   };
 
-  // Movie Card Rendering
-  const renderMovieCard = ({ item }: { item: Movie }) => (
-    <TouchableOpacity style={styles.movieCard} onPress={() => router.push(`/movie/${item.id}`)}>
-      <Image 
-        source={{ uri: item.posterUrl }} 
-        style={styles.moviePoster}
-        defaultSource={require('@/assets/images/partial-react-logo.png')} // Placeholder
-      />
-      <View style={styles.movieDetails}>
-        <Text style={styles.movieTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.movieInfo}>{item.duration} mins • {item.rating}</Text>
-        <Text style={styles.movieDescription} numberOfLines={2}>{item.description}</Text>
-        <Text style={styles.showtimesLabel}>Select showtime:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.showtimesList}>
-          {["12:00PM", "3:00PM", "6:00PM", "9:00PM"].map((time) => (
-            <TouchableOpacity
-              key={time}
-              style={styles.showtimeButton}
-              onPress={() => {
-                // Simple and direct navigation with logging
-                const route = `/movie/${item.id}/purchase?showtime=${time}`;
-                console.log('Navigating to:', route);
-              }}
-            >
-              <Text style={styles.showtimeText}>{time}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    </TouchableOpacity>
-  );
+  const selectLocation = async (location: Location) => {
+    setSelectedLocation(location);
+    setShowLocationModal(false);
+    
+    // Store selection in AsyncStorage (equivalent to localStorage in web)
+    try {
+      await AsyncStorage.setItem("selectedLocation", JSON.stringify(location));
+    } catch (err) {
+      console.error('Error saving location preference:', err);
+    }
+  };
 
   // Hero Section with Lion's Den Cinema Welcome
   const HeroSection = () => (
     <View style={styles.heroSection}>
-      <ThemedText style={styles.heroTitle}>Welcome to Lion's Den Cinema!</ThemedText>
+      <ThemedText style={styles.heroTitle}>Welcome to Lion's Den Cinema</ThemedText>
     </View>
   );
 
@@ -167,7 +248,7 @@ export default function HomeScreen() {
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Choose The Location You Will Be Visiting:</Text>
+          <Text style={styles.modalTitle}>Select Your Theater</Text>
           {locations.map((location) => (
             <TouchableOpacity
               key={location.id}
@@ -182,7 +263,7 @@ export default function HomeScreen() {
     </Modal>
   );
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#10b981" />
@@ -195,7 +276,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <LocationModal />
       
-      {/* Theater Selection */}
+      {/* Theater Selection Button */}
       <TouchableOpacity 
         style={styles.theaterSelector}
         onPress={() => setShowLocationModal(true)}
@@ -207,18 +288,42 @@ export default function HomeScreen() {
         <IconSymbol name="checkmark" size={16} color="#10b981" />
       </TouchableOpacity>
       
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor="#10b981"
+            colors={["#10b981"]}
+          />
+        }
+      >
         {/* Hero Section */}
         <HeroSection />
         
         {/* Featured Movies Section */}
         <View style={styles.moviesSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Featured Movies</ThemedText>
-          <View style={styles.featuredMoviesContainer}>
+          <ThemedText style={styles.sectionTitle}>Featured Movies</ThemedText>
+          
+          <View style={styles.moviesGrid}>
             {movies.map((movie) => (
-              <View key={movie.id} style={styles.featuredMovieWrapper}>
-                {renderMovieCard({ item: movie })}
-              </View>
+              <TouchableOpacity
+                key={movie.id}
+                style={styles.movieCard}
+                onPress={() => router.push(`/movie/${movie.id}`)}
+              >
+                <Image 
+                  source={{ uri: movie.posterUrl }} 
+                  style={styles.moviePoster}
+                  defaultSource={require('@/assets/images/partial-react-logo.png')}
+                />
+                <View style={styles.movieDetails}>
+                  <Text style={styles.movieTitle} numberOfLines={1}>{movie.title}</Text>
+                  <Text style={styles.movieInfo}>{movie.duration} mins • {movie.rating}</Text>
+                </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -248,10 +353,10 @@ const styles = StyleSheet.create({
   theaterSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     position: 'absolute',
     top: 50,
     right: 16,
@@ -260,20 +365,19 @@ const styles = StyleSheet.create({
   },
   theaterText: {
     marginHorizontal: 6,
-    color: '#333',
+    color: '#fff',
     fontSize: 14,
     fontWeight: '500',
   },
   // Hero Section
   heroSection: {
-    height: 150, // Reduced height
+    paddingVertical: 100,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginTop: 80, // Reduced margin
   },
   heroTitle: {
-    fontSize: 28, // Reduced font size
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
@@ -287,67 +391,38 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 12,
+    marginBottom: 24,
+    textAlign: 'center',
   },
-  featuredMoviesContainer: {
-    gap: 16, // Space between movie cards
-  },
-  featuredMovieWrapper: {
-    marginBottom: 16,
+  moviesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 16,
   },
   movieCard: {
-    backgroundColor: '#1e1e1e',
-    borderRadius: 8,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    width: POSTER_WIDTH,
+    marginBottom: 24,
   },
   moviePoster: {
-    width: '100%',
-    height: 200,
-    resizeMode: 'cover',
+    width: POSTER_WIDTH,
+    height: POSTER_HEIGHT,
+    borderRadius: 12,
   },
   movieDetails: {
-    padding: 12,
+    marginTop: 8,
+    alignItems: 'center',
   },
   movieTitle: {
     color: '#FFFFFF',
     fontWeight: '600',
-    fontSize: 18,
-    marginBottom: 4,
+    fontSize: 16,
+    textAlign: 'center',
   },
   movieInfo: {
     color: '#888',
     fontSize: 14,
-    marginBottom: 8,
-  },
-  movieDescription: {
-    color: '#ccc',
-    marginBottom: 12,
-    fontSize: 14,
-  },
-  showtimesLabel: {
-    color: '#FFFFFF',
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  showtimesList: {
-    flexGrow: 0,
-  },
-  showtimeButton: {
-    backgroundColor: '#10b981',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  showtimeText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 12,
+    textAlign: 'center',
   },
   // Modal styles
   modalOverlay: {
@@ -357,25 +432,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#1e1e1e',
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: '#111111',
+    borderRadius: 12,
+    padding: 24,
     width: '80%',
     maxWidth: 400,
   },
   modalTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 24,
     textAlign: 'center',
   },
   locationButton: {
     backgroundColor: '#10b981',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 6,
-    marginBottom: 10,
+    borderRadius: 8,
+    marginBottom: 12,
   },
   locationButtonText: {
     color: '#FFFFFF',
