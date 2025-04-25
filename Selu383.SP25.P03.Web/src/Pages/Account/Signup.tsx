@@ -70,23 +70,38 @@ const Signup: React.FC = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch('/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        username,
-        password,
-        roles: ['User']
-      })
-    });
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          username,
+          password,
+          roles: ['User']
+        })
+      });
 
-    if (response.ok) {
-      const newUser = await response.json();
-      console.log('Account created:', newUser);
-      navigate('/');
-    } else {
-      setError('Signup failed. Check your input or try again.');
+      if (response.ok) {
+        const newUser = await response.json();
+        console.log('✅ Account created:', newUser);
+        navigate('/login');
+      } else {
+        const errorResponse = await response.json().catch(() => ({})); // Catch if backend returns non-JSON error
+        console.error('❌ Signup failed. Full error:', errorResponse);
+
+        // Try to extract a better error message if possible
+        if (errorResponse.errors) {
+          setError('Signup failed: ' + Object.values(errorResponse.errors).join(', '));
+        } else if (errorResponse.title) {
+          setError('Signup failed: ' + errorResponse.title);
+        } else {
+          setError('Signup failed. Please check your input.');
+        }
+      }
+    } catch (err) {
+      console.error('❌ Unexpected error during signup:', err);
+      setError('Unexpected error occurred during signup.');
     }
   };
 

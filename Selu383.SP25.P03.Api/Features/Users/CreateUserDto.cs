@@ -8,6 +8,6 @@ namespace Selu383.SP25.P03.Api.Features.Users
 
         public required string Password { get; set; }
 
-        public string[]? Roles { get; set; }
+        public List<string> Roles { get; set; }
     }
 }
