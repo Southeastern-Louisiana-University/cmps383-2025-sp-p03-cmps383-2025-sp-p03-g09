@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const styles = `
@@ -62,91 +62,62 @@ const styles = `
 `;
 
 const Signup: React.FC = () => {
-    const navigate = useNavigate();
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [role, setRole] = useState('User');
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-    useEffect(() => {
-      const fetchCurrentUser = async () => {
-        const res = await fetch('/api/authentication/me', { credentials: 'include' });
-        if (res.ok) {
-          const user = await res.json();
-          if (user.roles?.includes('Admin')) {
-            setIsAdmin(true);
-          }
-        }
-      };
-      fetchCurrentUser();
-    }, []);
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    const handleSignup = async (e: React.FormEvent) => {
-      e.preventDefault();
+    const response = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        username,
+        password,
+        roles: ['User']
+      })
+    });
 
-      const selectedRole = isAdmin ? role : 'User';
-
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          userName: username,
-          password,
-          roles: [selectedRole]
-        })
-      });
-
-      if (response.ok) {
-        const newUser = await response.json();
-        console.log('Account created:', newUser);
-        navigate('/');
-      } else {
-        setError('Signup failed. Check your input or try again.');
-      }
-    };
-
-    return (
-      <>
-        <style>{styles}</style>
-        <div className="signup-container">
-          <h1 className="signup-title">Create an Account</h1>
-          <form onSubmit={handleSignup}>
-            <input
-              className="input-field"
-              type="text"
-              placeholder="Username"
-              value={username}
-              required
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <input
-              className="input-field"
-              type="password"
-              placeholder="Password"
-              value={password}
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            {isAdmin && (
-              <select
-                className="input-field"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="User">User</option>
-                <option value="Admin">Admin</option>
-              </select>
-            )}
-
-            <button type="submit" className="signup-button">Sign Up</button>
-            {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-          </form>
-        </div>
-      </>
-    );
+    if (response.ok) {
+      const newUser = await response.json();
+      console.log('Account created:', newUser);
+      navigate('/');
+    } else {
+      setError('Signup failed. Check your input or try again.');
+    }
   };
 
-  export default Signup;
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="signup-container">
+        <h1 className="signup-title">Create an Account</h1>
+        <form onSubmit={handleSignup}>
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Username"
+            value={username}
+            required
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            className="input-field"
+            type="password"
+            placeholder="Password"
+            value={password}
+            required
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button type="submit" className="signup-button">Sign Up</button>
+          {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
+        </form>
+      </div>
+    </>
+  );
+};
+
+export default Signup;
