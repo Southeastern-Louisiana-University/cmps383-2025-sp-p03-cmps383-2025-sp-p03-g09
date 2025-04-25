@@ -91,6 +91,8 @@ const Navbar: React.FC = () => {
     localStorage.setItem('selectedLocation', JSON.stringify(loc));
     setSelectedLocation(loc);
     setShowLocationDropdown(false);
+    window.dispatchEvent(new Event("locationChanged"));
+
   };
 
   return (

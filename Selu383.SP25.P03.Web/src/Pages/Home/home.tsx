@@ -288,29 +288,87 @@ const Home: React.FC = () => {
       <style>{styles}</style>
 
       {showLocationModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2 className="text-xl font-bold mb-4">Choose The Location You Will Be Visiting:</h2>
-            <ul>
-              {locations.map((loc) => (
-                <li key={loc.id}>
-                  <button
-                    className="ticket-button w-full"
-                    onClick={() => {
-                      setSelectedLocation(loc);
-                      localStorage.setItem('selectedLocation', JSON.stringify(loc));
-                      setShowLocationModal(false);
-                      window.dispatchEvent(new Event('storage'));
-                    }}
-                  >
-                    {loc.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+  <div className="modal-overlay">
+    <div className="modal-content location-modal-upgrade">
+      <h2 className="modal-title">Select Your Theater</h2><br></br>
+      <div className="location-buttons">
+        {locations.map((loc) => (
+          <button
+            key={loc.id}
+            className="location-btn"
+            onClick={() => {
+              setSelectedLocation(loc);
+              localStorage.setItem('selectedLocation', JSON.stringify(loc));
+              setShowLocationModal(false);
+              window.dispatchEvent(new Event('storage'));
+            }}
+          >
+            {loc.name}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <style>{`
+      .location-modal-upgrade {
+        text-align: center;
+        padding: 2.5rem;
+        border-radius: 12px;
+        background-color: #111111;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+        animation: fadeInUp 0.4s ease-out;
+      }
+
+      .modal-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+      }
+
+      .modal-subtitle {
+        font-size: 1rem;
+        color: #bbbbbb;
+        margin-bottom: 1.5rem;
+      }
+
+      .location-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .location-btn {
+        background-color: #10b981;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+      }
+
+      .location-btn:hover {
+        background-color: #13c294;
+        transform: scale(1.03);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `}</style>
+  </div>
+)}
+
 
       <div className="min-h-screen bg-black w-full">
         <Navbar />

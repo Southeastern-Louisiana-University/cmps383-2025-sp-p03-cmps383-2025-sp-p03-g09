@@ -43,20 +43,47 @@ const PurchaseTicket: React.FC = () => {
 
 
   useEffect(() => {
-    fetch("/api/fooditems")
-      .then((res) => res.json())
-      .then(setFoodItems);
-
+    const fetchFoodItems = async () => {
+      try {
+        const allItems = await fetch("/api/fooditems").then(res => res.json());
+  
+        const selected = localStorage.getItem("selectedLocation");
+        let locationId = null;
+  
+        if (selected) {
+          try {
+            const parsed = JSON.parse(selected);
+            locationId = parsed?.id;
+          } catch (err) {
+            console.warn("Failed to parse selected location");
+          }
+        }
+  
+        const filtered = locationId
+          ? allItems.filter((item: any) => item.locationId === locationId)
+          : allItems;
+  
+        const shuffled = [...filtered].sort(() => 0.5 - Math.random());
+        const randomThree = shuffled.slice(0, 3);
+  
+        setFoodItems(randomThree);
+      } catch (err) {
+        console.error("Failed to load food items:", err);
+      }
+    };
+  
+    fetchFoodItems();
+  
     if (movieId) {
       fetch(`/api/movies/${movieId}`)
         .then((res) => res.json())
         .then(setMovieDetails);
     }
-
+  
     const selected = localStorage.getItem("selectedLocation");
     if (selected) {
       const parsed = JSON.parse(selected);
-
+  
       fetch("/api/locations")
         .then((res) => res.json())
         .then((all) => {
@@ -64,15 +91,16 @@ const PurchaseTicket: React.FC = () => {
           if (match) {
             setLocationDetails(match);
           } else {
-            console.warn("⚠️ No matching location found for:", parsed.name);
+            console.warn("No matching location found for:", parsed.name);
           }
         });
     }
-
+  
     fetch("/api/authentication/me", { credentials: "include" })
       .then((res) => res.json())
       .catch((err) => console.error("Failed to fetch user details:", err));
   }, [movieId, locationId]);
+  
 
   const handleAddFood = (food: FoodItem) => {
     setCartItems((prev) => {
@@ -326,17 +354,17 @@ const PurchaseTicket: React.FC = () => {
               minute: "2-digit"
             }) : "N/A"}</p>
 
-<p><strong>Seats:</strong> {selectedSeats.map((s: any) => {
-  const rowChar = typeof s.row === "number" ? String.fromCharCode(64 + s.row) : s.row;
-  return `${rowChar}${s.column}`;
-}).join(", ")}</p>
+            <p><strong>Seats:</strong> {selectedSeats.map((s: any) => {
+              const rowChar = typeof s.row === "number" ? String.fromCharCode(64 + s.row) : s.row;
+              return `${rowChar}${s.column}`;
+            }).join(", ")}</p>
 
             <p className="mt-4"><strong>Ticket Price:</strong> ${ticketTotalPrice.toFixed(2)}</p>
           </div>
 
           {cartItems.length > 0 && (
             <div className="bg-gray-900 p-4 rounded mb-6">
-              <h2 className="text-xl font-bold mb-2">Food Items</h2>
+              <h2 className="text-xl font-bold mb-2">Food/Drink:</h2>
               {cartItems.map((item) => (
                 <div key={item.food.id} className="cart-item">
                   <div className="cart-item-details">
