@@ -92,7 +92,7 @@ export default function SeatSelectionScreen() {
     
     // Navigate to checkout page with selected seats
     router.push({
-      pathname: '/checkout',
+      pathname: '/tickets',
       params: {
         movieId: movieId,
         showtimeId: showtimeId,
