@@ -17,6 +17,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Define types for our data
 interface Movie {
   id: number;
   title: string;
@@ -43,6 +44,7 @@ interface Location {
   address: string;
 }
 
+// Hardcoded movie data
 const moviesData: Movie[] = [
   {
     id: 1,
@@ -109,7 +111,7 @@ const moviesData: Movie[] = [
     title: "The King of Kings",
     duration: 104,
     rating: "PG",
-    description: "A father tells his son the greatest story ever told, and what begins as a bedtime tale becomes a life-changing journey. Through vivid imagination, the boy walks alongside Jesus, witnessing His miracles, facing His trials, and understanding His ultimate sacrifice.",
+    description: "A father tells his son the greatest story ever told, and what begins as a bedtime tale becomes a life-changing journey. Through vivid imagination, the boy walks alongside Jesus, witnessing His miracles, facing His trials, and understanding His ultimate sacrifice. The King of Kings invites us to rediscover the enduring power of hope, love, and redemption through the eyes of a child.",
     releaseDate: "2025-04-11",
     posterUrl: "https://i.imgur.com/hvZ9Aql.jpeg",
     youtubeUrl: "https://www.youtube.com/watch?v=HkGZ4ykhYPg"
@@ -166,8 +168,8 @@ const locationsData: Location[] = [
 ];
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const POSTER_WIDTH = SCREEN_WIDTH * 0.42; 
-const POSTER_HEIGHT = POSTER_WIDTH * 1.5; 
+const POSTER_WIDTH = SCREEN_WIDTH * 0.42; // Slightly smaller to fit 2 per row
+const POSTER_HEIGHT = POSTER_WIDTH * 1.5; // Standard movie poster ratio
 
 export default function HomeScreen() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -229,6 +231,12 @@ export default function HomeScreen() {
     } catch (err) {
       console.error('Error saving location preference:', err);
     }
+  };
+
+  // Navigate to movie details page
+  const handleMoviePress = (movieId: number) => {
+    // Navigate to the movie details screen
+    router.push(`/movies/${movieId}`);
   };
 
   // Hero Section with Lion's Den Cinema Welcome
@@ -312,7 +320,7 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={movie.id}
                 style={styles.movieCard}
-                onPress={() => router.push(`/movie/${movie.id}`)}
+                onPress={() => handleMoviePress(movie.id)}
               >
                 <Image 
                   source={{ uri: movie.posterUrl }} 
@@ -371,13 +379,13 @@ const styles = StyleSheet.create({
   },
   // Hero Section
   heroSection: {
-    paddingVertical: 100,
+    paddingVertical: 80,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
   heroTitle: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
