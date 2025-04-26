@@ -87,7 +87,6 @@ export default function SeatSelectionScreen() {
       return;
     }
 
-    // In a real app, you would send this to your API
     console.log('Selected seats:', selectedSeats);
     
     // Navigate to checkout page with selected seats

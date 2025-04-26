@@ -233,13 +233,12 @@ export default function HomeScreen() {
     }
   };
 
-  // Navigate to movie details page
-  const handleMoviePress = (movieId: number) => {
-    // Navigate to the movie details screen
-    router.push(`/movies/${movieId}`);
+  const navigateToMovie = (movieId: number) => {
+    console.log(`Navigating to movie ${movieId}`);
+    router.push(`/movie/${movieId}`);
   };
 
-  // Hero Section with Lion's Den Cinema Welcome
+  // Updated Hero Section with improved positioning and text handling
   const HeroSection = () => (
     <View style={styles.heroSection}>
       <ThemedText style={styles.heroTitle}>Welcome to Lion's Den Cinema</ThemedText>
@@ -320,7 +319,8 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={movie.id}
                 style={styles.movieCard}
-                onPress={() => handleMoviePress(movie.id)}
+                onPress={() => navigateToMovie(movie.id)}
+                activeOpacity={0.7}
               >
                 <Image 
                   source={{ uri: movie.posterUrl }} 
@@ -335,6 +335,9 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
+
+        {/* Bottom spacer */}
+        <View style={{ height: 20 }} />
       </ScrollView>
     </View>
   );
@@ -377,18 +380,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  // Hero Section
+  // Updated Hero Section with improved spacing and text handling
   heroSection: {
-    paddingVertical: 80,
+    paddingTop: 100, // Increased top padding to lower the header
+    paddingBottom: 40,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
   heroTitle: {
-    fontSize: 32,
+    fontSize: 32, // Slightly larger font size
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
+    flexWrap: 'wrap', // Ensures text wraps properly
+    width: '100%', // Full width to avoid cutoff
+    lineHeight: 40, // Improved line height for better readability
   },
   // Movies Section
   moviesSection: {
@@ -396,7 +403,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 24,
@@ -465,5 +472,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
-  },
+  }
 });

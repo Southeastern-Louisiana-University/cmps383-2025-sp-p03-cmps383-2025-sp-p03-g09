@@ -5,12 +5,15 @@ import {
   Text, 
   ScrollView, 
   TouchableOpacity, 
-  Linking 
+  Linking,
+  Dimensions
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function AboutScreen() {
   // Function to handle phone call
@@ -28,7 +31,11 @@ export default function AboutScreen() {
         }}
       />
       
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.contentContainer}>
           {/* About Section */}
           <View style={styles.section}>
@@ -65,37 +72,6 @@ export default function AboutScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Our Locations Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Our Locations</Text>
-            
-            <View style={styles.locationsList}>
-              <View style={styles.locationCard}>
-                <Text style={styles.locationName}>Lion's Den New Orleans</Text>
-                <Text style={styles.locationAddress}>636 N Broad St, New Orleans, LA 70119</Text>
-                <TouchableOpacity style={styles.locationButton}>
-                  <Text style={styles.locationButtonText}>View Showtimes</Text>
-                </TouchableOpacity>
-              </View>
-              
-              <View style={styles.locationCard}>
-                <Text style={styles.locationName}>Lion's Den New York</Text>
-                <Text style={styles.locationAddress}>570 2nd Ave, New York, NY 10016</Text>
-                <TouchableOpacity style={styles.locationButton}>
-                  <Text style={styles.locationButtonText}>View Showtimes</Text>
-                </TouchableOpacity>
-              </View>
-              
-              <View style={styles.locationCard}>
-                <Text style={styles.locationName}>Lion's Den Los Angeles</Text>
-                <Text style={styles.locationAddress}>4020 Marlton Ave, Los Angeles, CA 90008</Text>
-                <TouchableOpacity style={styles.locationButton}>
-                  <Text style={styles.locationButtonText}>View Showtimes</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
           
           {/* Bottom Space */}
           <View style={styles.bottomSpace} />
@@ -113,8 +89,16 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center', // Centers content vertically
+    paddingTop: 40, // Add some space from the top
+  },
   contentContainer: {
     padding: 20,
+    maxWidth: 600, // Limit width on larger devices
+    alignSelf: 'center', // Center horizontally
+    width: '100%',
   },
   section: {
     marginBottom: 40,
@@ -150,37 +134,6 @@ const styles = StyleSheet.create({
   contactText: {
     fontSize: 16,
     color: '#E0E0E0',
-  },
-  locationsList: {
-    gap: 16,
-  },
-  locationCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-  },
-  locationName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  locationAddress: {
-    fontSize: 16,
-    color: '#E0E0E0',
-    marginBottom: 12,
-  },
-  locationButton: {
-    backgroundColor: '#10b981',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  locationButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '500',
   },
   bottomSpace: {
     height: 40,
