@@ -27,35 +27,41 @@ namespace Selu383.SP25.P03.Api.Controllers
             roles = dataContext.Set<Role>();
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
-        {
-            var rolesArray = new string[] { "Admin", "User" }; // Example array
-            var rolesList = rolesArray.ToList(); // Convert array to List<string>
+       [HttpPost]
+public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
+{
+    var allowedRoles = new List<string> { "Admin", "User" };
 
-            // Ensure dto.Roles is converted to a List<string> for comparison
-            var dtoRolesList = dto.Roles.ToList();
+    // Default to "User" role if none provided
+    var dtoRolesList = dto.Roles?.Any() == true ? dto.Roles : new List<string> { "User" };
 
-            if (!dtoRolesList.Any() || !dtoRolesList.All(x => rolesList.Any(y => x == y)))
-            {
-                return BadRequest();
-            }
+    // Validate that all requested roles are allowed
+    if (!dtoRolesList.All(role => allowedRoles.Contains(role)))
+    {
+        return BadRequest(new { error = $"Invalid roles provided. Must be one of: {string.Join(", ", allowedRoles)}" });
+    }
 
-            var result = await userManager.CreateAsync(new User { UserName = dto.Username }, dto.Password);
-            if (result.Succeeded)
-            {
-                await userManager.AddToRolesAsync(await userManager.FindByNameAsync(dto.Username), dtoRolesList);
+    var user = new User
+    {
+        UserName = dto.Username
+    };
 
-                var user = await userManager.FindByNameAsync(dto.Username);
-                return new UserDto
-                {
-                    Id = user.Id,
-                    UserName = dto.Username,
-                    Roles = dtoRolesList
-                };
-            }
-            return BadRequest();
-        }
+    var result = await userManager.CreateAsync(user, dto.Password);
+
+    if (!result.Succeeded)
+    {
+        return BadRequest(new { errors = result.Errors.Select(e => e.Description).ToList() });
+    }
+
+    await userManager.AddToRolesAsync(user, dtoRolesList);
+
+    return new UserDto
+    {
+        Id = user.Id,
+        UserName = user.UserName,
+        Roles = dtoRolesList
+    };
+}
+
     }
 }
