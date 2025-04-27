@@ -32,9 +32,10 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
 {
     var result = await signInManager.PasswordSignInAsync(dto.UserName, dto.Password, false, false);
     if (!result.Succeeded)
-    {
-        return Unauthorized("Invalid username or password.");
-    }
+{
+    return BadRequest("Invalid username or password.");
+}
+
 
     var user = await userManager.FindByNameAsync(dto.UserName);
     if (user == null)
