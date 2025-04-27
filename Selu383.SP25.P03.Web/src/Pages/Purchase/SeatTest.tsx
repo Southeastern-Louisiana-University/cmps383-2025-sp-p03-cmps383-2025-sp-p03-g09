@@ -30,46 +30,41 @@ const SeatTest: React.FC = () => {
       return id;
     })();
 
-  const loadSeats = () => {
-    if (!theaterId) return;
+  useEffect(() => {
+    const loadSeats = async () => {
+      if (!theaterId) return;
 
-    fetch(`/api/seats/theater/${theaterId}`)
-      .then((res) => res.json())
-      .then(setSeats)
-      .catch((err) => console.error("Failed to fetch seats:", err));
+      try {
+        const seatRes = await fetch(`/api/seats/theater/${theaterId}`);
+        const seatData = await seatRes.json();
+        setSeats(seatData);
 
-    if (movieId && locationId && showtime) {
-      const params = new URLSearchParams({ movieId, locationId, showtime });
+        if (movieId && locationId && showtime) {
+          const params = new URLSearchParams({ movieId, locationId, showtime });
+          const ticketRes = await fetch(`/api/tickets/byshowtime?${params}`);
+          const ticketData = await ticketRes.json();
 
-      fetch(`/api/tickets/byshowtime?${params}`)
-        .then((res) => res.json())
-        .then((data) => {
-          const backendIds = Array.isArray(data) ? data.map((t: any) => t.seatId) : [];
+          const backendIds = Array.isArray(ticketData)
+            ? ticketData.map((t: any) => t.seatId)
+            : [];
 
           let localSeatIds: number[] = [];
-          try {
-            const confirmationRaw = localStorage.getItem("lastConfirmedOrder");
-            if (confirmationRaw) {
-              const parsed = JSON.parse(confirmationRaw);
-              if (parsed?.ticket?.showtime === showtime && Array.isArray(parsed.seats)) {
-                localSeatIds = parsed.seats.map((s: any) => s.seatId);
-              }
+          const confirmationRaw = localStorage.getItem("lastConfirmedOrder");
+          if (confirmationRaw) {
+            const parsed = JSON.parse(confirmationRaw);
+            if (parsed?.ticket?.showtime === showtime && Array.isArray(parsed.seats)) {
+              localSeatIds = parsed.seats.map((s: any) => s.seatId);
             }
-          } catch (err) {
-            console.warn("Could not parse confirmation seats:", err);
           }
 
-          const all = new Set<number>();
-          backendIds.forEach((id) => all.add(id));
-          localSeatIds.forEach((id) => all.add(id));
+          const allIds = new Set<number>([...backendIds, ...localSeatIds]);
+          setTakenSeatIds(Array.from(allIds));
+        }
+      } catch (err) {
+        console.error("Failed to load seats:", err);
+      }
+    };
 
-          setTakenSeatIds(Array.from(all));
-        })
-        .catch((err) => console.error("Failed to fetch taken seats:", err));
-    }
-  };
-
-  useEffect(() => {
     loadSeats();
 
     const handleVisibility = () => {
@@ -79,20 +74,18 @@ const SeatTest: React.FC = () => {
     };
 
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [theaterId, movieId, locationId, showtime]);
 
   const toggleSeat = async (seat: Seat) => {
-    const isSelected = selectedSeats.find((s) => s.id === seat.id);
+    const isSelected = selectedSeats.some((s) => s.id === seat.id);
 
     if (isSelected) {
       await fetch(`/api/seats/${theaterId}/release`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Guest-ID": guestId
+          "X-Guest-ID": guestId,
         },
         body: JSON.stringify(seat),
       });
@@ -107,7 +100,7 @@ const SeatTest: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Guest-ID": guestId
+          "X-Guest-ID": guestId,
         },
         body: JSON.stringify(seat),
       });
@@ -120,7 +113,7 @@ const SeatTest: React.FC = () => {
     }
   };
 
-  const rowToLetter = (row: string | number): string => {
+  const rowToLetter = (row: string | number) => {
     const num = typeof row === "string" ? parseInt(row, 10) : row;
     if (isNaN(num) || num <= 0) return "?";
     let result = "";
@@ -139,7 +132,7 @@ const SeatTest: React.FC = () => {
       return;
     }
 
-    const cartItems = selectedSeats.map(seat => ({
+    const cartItems = selectedSeats.map((seat) => ({
       seatId: seat.id,
       row: seat.row,
       column: seat.column,
@@ -150,70 +143,105 @@ const SeatTest: React.FC = () => {
     }));
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
-    navigate(`/movies/${movieId}/purchase?showtime=${encodeURIComponent(showtime)}&locationId=${locationId}&theaterId=${theaterId}`);
+    navigate(
+      `/movies/${movieId}/purchase?showtime=${encodeURIComponent(showtime)}&locationId=${locationId}&theaterId=${theaterId}`
+    );
   };
 
   const renderSeatGrid = () => {
-    const sorted = [...seats].sort((a, b) => {
-      const rowA = parseInt(a.row);
-      const rowB = parseInt(b.row);
-      return rowA === rowB ? a.column - b.column : rowA - rowB;
-    });
+  const sorted = [...seats].sort((a, b) => {
+    const rowA = parseInt(a.row);
+    const rowB = parseInt(b.row);
+    return rowA === rowB ? a.column - b.column : rowA - rowB;
+  });
 
-    const rowNums = Array.from(new Set(sorted.map((s) => parseInt(s.row)))).sort((a, b) => a - b);
+  const rowNums = Array.from(new Set(sorted.map((s) => parseInt(s.row)))).sort((a, b) => a - b);
 
-    return rowNums.map((rowNum) => {
-      const rowSeats = sorted.filter((s) => parseInt(s.row) === rowNum);
+  return rowNums.map((rowNum) => {
+    const rowSeats = sorted.filter((s) => parseInt(s.row) === rowNum);
 
-      return (
-        <div key={rowNum} style={{ display: "flex", marginBottom: "6px", justifyContent: "center" }}>
-          
+    return (
+      <div
+        key={rowNum}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginBottom: "8px",
+          gap: "8px",
+        }}
+      >
+        {/* Add the row letter label */}
+        <div
+          style={{
+            width: "40px",
+            height: "40px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            fontWeight: "bold",
+            fontSize: "1rem",
+          }}
+        >
+          {rowToLetter(rowNum)}
+        </div>
+
+        {/* Wrap all the seats into a flex div */}
+        <div style={{ display: "flex" }}>
           {rowSeats.map((seat) => {
             const isSelected = selectedSeats.some((s) => s.id === seat.id);
             const isTaken = takenSeatIds.includes(seat.id);
-            const style = {
-              width: "36px",
-              height: "36px",
-              margin: "2px",
-              borderRadius: "4px",
-              fontSize: "0.75rem",
-              fontWeight: "bold",
-              cursor: isTaken && !isSelected ? "not-allowed" : "pointer",
-              backgroundColor: isSelected
-                ? "#3B82F6"
-                : isTaken
-                ? "#DC2626"
-                : "#10B981",
-              color: "#ffffff",
-              border: "none"
-            };
 
             return (
               <button
                 key={seat.id}
                 onClick={() => toggleSeat(seat)}
                 disabled={isTaken && !isSelected}
-                style={style}
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "40px",
+                  height: "40px",
+                  margin: "4px",
+                  borderRadius: "6px",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  backgroundColor: isSelected
+                    ? "#3B82F6"
+                    : isTaken
+                    ? "#DC2626"
+                    : "#10B981",
+                  color: "#ffffff",
+                  border: "none",
+                  cursor: isTaken && !isSelected ? "not-allowed" : "pointer",
+                }}
               >
-                <span>{rowToLetter(seat.row)}{seat.column}</span>
+                {rowToLetter(seat.row)}
+                {seat.column}
               </button>
             );
           })}
         </div>
-      );
-    });
-  };
+      </div>
+    );
+  });
+};
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white w-full">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-6">Seat Selection</h1>
-        {renderSeatGrid()}
-        <div className="text-center mt-6">
-          <button
-            onClick={handleConfirmSeats}
-            disabled={selectedSeats.length === 0}
+      <main className="py-16">
+        <section className="flex flex-col items-center justify-center text-center gap-8">
+          
+          {/* Centered Seat Selection */}
+          <div style={{ width: "100%", textAlign: "center" }}>
+            <h1 className="text-4xl font-bold mb-6">Seat Selection</h1>
+          </div>
+
+          {/* Centered Seats and Button */}
+          <div
+            className="flex flex-col items-center"
             style={{
               backgroundColor: selectedSeats.length === 0 ? "#6B7280" : "#EF4444",
               padding: "12px 24px",
@@ -222,12 +250,27 @@ const SeatTest: React.FC = () => {
               color: "#ffffff !important",
               cursor: selectedSeats.length === 0 ? "not-allowed" : "pointer",
               opacity: selectedSeats.length === 0 ? 0.6 : 1
+
             }}
           >
-            Confirm Seats & Continue
-          </button>
-        </div>
-      </div>
+            {renderSeatGrid()}
+
+            {/* Updated Button */}
+            <button
+              onClick={handleConfirmSeats}
+              disabled={selectedSeats.length === 0}
+              className={`px-8 py-4 rounded-lg font-semibold mt-8 text-white`}
+              style={{
+                backgroundColor: selectedSeats.length === 0 ? "#ec3838" : "#ec3838",
+                opacity: selectedSeats.length === 0 ? 0.5 : 1,
+                cursor: selectedSeats.length === 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              Confirm Seats & Continue
+            </button>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };
