@@ -32,10 +32,9 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
 {
     var result = await signInManager.PasswordSignInAsync(dto.UserName, dto.Password, false, false);
     if (!result.Succeeded)
-{
-    return BadRequest("Invalid username or password.");
-}
-
+    {
+        return BadRequest("Invalid username or password.");
+    }
 
     var user = await userManager.FindByNameAsync(dto.UserName);
     if (user == null)
@@ -43,7 +42,6 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
         return BadRequest();
     }
 
-    // Generate JWT token
     var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -67,10 +65,15 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
     var token = tokenHandler.CreateToken(tokenDescriptor);
     var jwt = tokenHandler.WriteToken(token);
 
-    
-
-    return Ok(new { token = jwt });
+    // 🚨 THIS IS THE IMPORTANT PART
+    return Ok(new
+    {
+        id = user.Id,
+        username = user.UserName,
+        token = jwt
+    });
 }
+
 
 
 

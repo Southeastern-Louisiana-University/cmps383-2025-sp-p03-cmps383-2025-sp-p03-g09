@@ -77,10 +77,7 @@ namespace Selu383.SP25.P03.Api
                 options.SlidingExpiration = true;
             });
 
-            builder.WebHost.ConfigureKestrel(serverOptions =>
-            {
-                serverOptions.ListenAnyIP(5249);
-            });
+            
 
             var app = builder.Build();
 
@@ -106,7 +103,7 @@ namespace Selu383.SP25.P03.Api
 
             app.UseHttpsRedirection();
 
-            app.UseAuthentication(); // 👈 MUST be first
+            app.UseAuthentication();
             app.UseRouting();
             app.UseAuthorization();
 
