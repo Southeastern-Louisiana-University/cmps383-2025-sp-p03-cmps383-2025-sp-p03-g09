@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Users;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -23,27 +27,51 @@ namespace Selu383.SP25.P03.Api.Controllers
             users = dataContext.Set<User>();
         }
 
-        [HttpPost]
-        [Route("login")]
-        public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto dto)
-        {
-            var result = await signInManager.PasswordSignInAsync(dto.UserName, dto.Password, false, false);
-            if (result.Succeeded)
-            {
-                var user = await userManager.FindByNameAsync(dto.UserName);
-                if (user == null)
-                {
-                    return BadRequest();
-                }
-                return new UserDto
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Roles = (await userManager.GetRolesAsync(user)).ToList()
-                };
-            }
-            return BadRequest();
-        }
+        [HttpPost("login")]
+public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
+{
+    var result = await signInManager.PasswordSignInAsync(dto.UserName, dto.Password, false, false);
+    if (!result.Succeeded)
+    {
+        return Unauthorized("Invalid username or password.");
+    }
+
+    var user = await userManager.FindByNameAsync(dto.UserName);
+    if (user == null)
+    {
+        return BadRequest();
+    }
+
+    // Generate JWT token
+    var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.UserName)
+    };
+
+    var roles = await userManager.GetRolesAsync(user);
+    claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+    var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("YOUR_SUPER_SECRET_32CHAR_KEY"));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+    var tokenDescriptor = new SecurityTokenDescriptor
+    {
+        Subject = new ClaimsIdentity(claims),
+        Expires = DateTime.UtcNow.AddDays(7),
+        SigningCredentials = creds
+    };
+
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var token = tokenHandler.CreateToken(tokenDescriptor);
+    var jwt = tokenHandler.WriteToken(token);
+
+    
+
+    return Ok(new { token = jwt });
+}
+
+
 
         [HttpGet]
         [Route("me")]

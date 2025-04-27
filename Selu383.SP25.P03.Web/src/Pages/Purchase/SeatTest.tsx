@@ -215,7 +215,7 @@ const SeatTest: React.FC = () => {
             onClick={handleConfirmSeats}
             disabled={selectedSeats.length === 0}
             style={{
-              backgroundColor: "#DC2626",
+              backgroundColor: selectedSeats.length === 0 ? "#6B7280" : "#EF4444",
               padding: "12px 24px",
               borderRadius: "6px",
               fontSize: "1rem",
