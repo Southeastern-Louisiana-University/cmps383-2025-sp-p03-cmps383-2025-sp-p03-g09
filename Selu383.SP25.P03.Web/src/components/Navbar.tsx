@@ -116,6 +116,7 @@ const Navbar: React.FC = () => {
             <button
               onClick={() => setShowLocationDropdown(!showLocationDropdown)}
               className="location-button"
+              style={{ color: 'black', backgroundColor: 'white', fontWeight: 'bold', padding: '8px 16px', borderRadius: '8px' }}
             >
               {selectedLocation ? selectedLocation.name : 'No Location Selected'}
             </button>
