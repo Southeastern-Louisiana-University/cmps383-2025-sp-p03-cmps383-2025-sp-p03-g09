@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-nat
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 
-const BASE_URL = 'http://192.168.1.13:5249';
 
 interface Order {
   movieTitle: string;
@@ -30,10 +29,10 @@ export default function PurchaseHistoryPage() {
         };
 
         if (token) {
-          url = `${BASE_URL}/api/orders/user`;
+          url = '/api/orders/user';
           headers['Authorization'] = `Bearer ${token}`;
         } else if (guestId) {
-          url = `${BASE_URL}/api/orders/guest/${guestId}`;
+          url = `/api/orders/guest/${guestId}`;
         } else {
           throw new Error('No user or guest ID found.');
         }

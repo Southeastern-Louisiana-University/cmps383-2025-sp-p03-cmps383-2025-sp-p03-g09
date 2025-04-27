@@ -3,7 +3,6 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
-const BASE_URL = 'http://192.168.1.13:5249';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -19,7 +18,7 @@ export default function LoginPage() {
     try {
       setLoading(true);
   
-      const res = await fetch(`${BASE_URL}/api/authentication/login`, {
+      const res = await fetch('/api/authentication/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userName: username, password }),

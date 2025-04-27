@@ -17,7 +17,6 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showtimeSchedule } from '@/Data/showtimeSchedule';
 
-const BASE_URL = 'http://192.168.1.13:5249'; // your real server
 
 interface Movie {
   id: number;
@@ -50,7 +49,7 @@ export default function MoviesScreen() {
           setSelectedLocationId(parsed.id);
         }
 
-        const res = await fetch(`${BASE_URL}/api/movies`);
+        const res = await fetch('/api/movies');
         if (!res.ok) throw new Error('Failed to fetch movies');
         const data = await res.json();
 
@@ -96,16 +95,27 @@ export default function MoviesScreen() {
             />
             
             <View style={styles.movieInfo}>
-              <Text style={styles.movieTitle}>{movie.title}</Text>
-              
-              <Text style={styles.movieMeta}>
-                Runtime: {movie.duration} mins • Rating: {movie.rating}
-              </Text>
-              
-              <Text style={styles.movieDescription} numberOfLines={2}>
-                {movie.description}
-              </Text>
-            </View>
+  <Text style={styles.movieTitle}>{movie.title}</Text>
+  
+  <Text style={styles.movieMeta}>
+    Runtime: {movie.duration} mins • Rating: {movie.rating}
+  </Text>
+
+  {activeTab === 'upcoming' && movie.releaseDate && (
+    <Text style={styles.releaseDateText}>
+      Release Date: {new Date(movie.releaseDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })}
+    </Text>
+  )}
+  
+  <Text style={styles.movieDescription} numberOfLines={2}>
+    {movie.description}
+  </Text>
+</View>
+
           </View>
       
           {activeTab === 'nowShowing' && matchedShowtimes.length > 0 && (

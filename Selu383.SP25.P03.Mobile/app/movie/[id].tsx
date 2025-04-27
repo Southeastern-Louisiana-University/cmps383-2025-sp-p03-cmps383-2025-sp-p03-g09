@@ -14,7 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showtimeSchedule } from '@/Data/showtimeSchedule';
 import { WebView } from 'react-native-webview';
 
-const BASE_URL = 'http://192.168.1.13:5249';
 
 interface Movie {
   id: number;
@@ -36,7 +35,7 @@ export default function MovieDetailPage() {
   useEffect(() => {
     const loadMovie = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/movies/${id}`);
+        const res = await fetch(`/api/movies/${id}`);
         if (!res.ok) throw new Error('Failed to fetch movie.');
         const data = await res.json();
         setMovie(data);

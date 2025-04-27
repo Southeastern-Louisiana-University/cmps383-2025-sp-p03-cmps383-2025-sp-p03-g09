@@ -52,7 +52,7 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
     var roles = await userManager.GetRolesAsync(user);
     claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-    var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("YOUR_SUPER_SECRET_32CHAR_KEY"));
+    var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("YOUR_SUPER_SECRET_32CHAR_KEY1234567890"));
     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
     var tokenDescriptor = new SecurityTokenDescriptor

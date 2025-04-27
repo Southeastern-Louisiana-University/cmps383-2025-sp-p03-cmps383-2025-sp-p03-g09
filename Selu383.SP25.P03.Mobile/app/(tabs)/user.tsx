@@ -42,8 +42,10 @@ export default function UserPage() {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
-    router.replace('/user'); // Refresh user page after logout
+    setUserName(null);
+    router.replace('/user');
   };
+  
 
   
 

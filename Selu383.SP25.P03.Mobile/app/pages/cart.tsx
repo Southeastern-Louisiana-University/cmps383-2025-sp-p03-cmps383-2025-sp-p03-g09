@@ -11,7 +11,6 @@ import { Stack, useLocalSearchParams, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
-const BASE_URL = 'http://192.168.1.13:5249';
 const TICKET_PRICE = 12.99;
 
 interface FoodItem {
@@ -62,15 +61,15 @@ export default function CartPage() {
         const parsedFood = foodItems ? JSON.parse(foodItems) : [];
         setFoodList(parsedFood);
 
-        const movieRes = await fetch(`${BASE_URL}/api/movies/${movieId}`);
+        const movieRes = await fetch(`/api/movies/${movieId}`);
         const movieData: Movie = await movieRes.json();
         setMovieTitle(movieData.title);
 
-        const foodRes = await fetch(`${BASE_URL}/api/fooditems`);
+        const foodRes = await fetch('/api/fooditems');
         const foodData: FoodItem[] = await foodRes.json();
         setFullFoodItems(foodData);
 
-        const seatRes = await fetch(`${BASE_URL}/api/seats/theater/${theaterId}`);
+        const seatRes = await fetch(`/api/seats/theater/${theaterId}`);
         const seatData: Seat[] = await seatRes.json();
         const matchingSeats = seatData
           .filter(seat => selectedSeatIds.includes(seat.id))
@@ -160,7 +159,7 @@ export default function CartPage() {
       console.log('FINAL PAYLOAD:', payload);
       console.log('HEADERS:', headers);
 
-      const res = await fetch(`${BASE_URL}/api/orders`, {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),

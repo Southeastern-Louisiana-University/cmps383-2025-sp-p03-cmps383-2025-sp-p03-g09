@@ -140,7 +140,9 @@ const ticketItem = ticketItems[0];
 
     };
 
-   
+    if (userId) {
+      payload.userId = userId;
+    }
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

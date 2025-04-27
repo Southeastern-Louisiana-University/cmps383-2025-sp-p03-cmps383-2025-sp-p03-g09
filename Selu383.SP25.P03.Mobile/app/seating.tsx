@@ -17,7 +17,6 @@ const TOTAL_COLUMNS = 13;
 const HORIZONTAL_PADDING = 32;
 const GAP_BETWEEN_SEATS = 6;
 const SEAT_SIZE = (SCREEN_WIDTH - HORIZONTAL_PADDING - (GAP_BETWEEN_SEATS * (TOTAL_COLUMNS - 1))) / TOTAL_COLUMNS;
-const BASE_URL = 'http://192.168.1.13:5249';
 
 interface Seat {
   id: number;
@@ -49,13 +48,13 @@ export default function SeatSelectionScreen() {
     const loadData = async () => {
       try {
         if (movieId) {
-          const movieRes = await fetch(`${BASE_URL}/api/movies/${movieId}`);
+          const movieRes = await fetch(`/api/movies/${movieId}`);
           const movieData: Movie = await movieRes.json();
           setMovieTitle(movieData.title);
         }
 
         if (theaterId) {
-          const seatRes = await fetch(`${BASE_URL}/api/seats/theater/${theaterId}`);
+          const seatRes = await fetch(`/api/seats/theater/${theaterId}`);
           const seatData: Seat[] = await seatRes.json();
           setSeats(seatData);
 
@@ -72,13 +71,12 @@ export default function SeatSelectionScreen() {
     loadData();
   }, [movieId, theaterId, showtime]);
 
-  // ⛔ VERY IMPORTANT: Always reload seats when this page comes into focus!
   useFocusEffect(
     React.useCallback(() => {
       const reloadSeats = async () => {
         try {
           if (theaterId) {
-            const seatRes = await fetch(`${BASE_URL}/api/seats/theater/${theaterId}`);
+            const seatRes = await fetch(`/api/seats/theater/${theaterId}`);
             const seatData: Seat[] = await seatRes.json();
             setSeats(seatData);
 
