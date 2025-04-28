@@ -65,15 +65,13 @@ namespace Selu383.SP25.P03.Api
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(
-            "http://192.168.1.13:8081", 
-            "http://localhost:5173"     
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
+
 
 
             builder.WebHost.ConfigureKestrel(serverOptions =>
