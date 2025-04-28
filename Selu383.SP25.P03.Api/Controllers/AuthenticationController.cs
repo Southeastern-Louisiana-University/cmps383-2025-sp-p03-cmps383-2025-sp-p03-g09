@@ -16,7 +16,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
         private readonly DataContext dataContext;
-        private DbSet<User> users;
+        private readonly DbSet<User> users;
 
         public AuthenticationController(SignInManager<User> signInManager, UserManager<User> userManager, DataContext dataContext)
         {
@@ -25,56 +25,58 @@ namespace Selu383.SP25.P03.Api.Controllers
             this.dataContext = dataContext;
             users = dataContext.Set<User>();
         }
-[HttpPost("login")]
-public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
-{
-    var user = await userManager.FindByNameAsync(dto.UserName);
-    if (user == null || !await userManager.CheckPasswordAsync(user, dto.Password))
-    {
-        return BadRequest("Invalid username or password.");
-    }
 
-    var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.UserName)
-    };
+        [HttpPost("login")]
+        public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
+        {
+            var user = await userManager.FindByNameAsync(dto.UserName);
+            if (user == null || !await userManager.CheckPasswordAsync(user, dto.Password))
+            {
+                return BadRequest("Invalid username or password.");
+            }
 
-    var roles = await userManager.GetRolesAsync(user);
-    claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName)
+            };
 
-    var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("YOUR_SUPER_SECRET_32CHAR_KEY1234567890"));
-    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var roles = await userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-        Subject = new ClaimsIdentity(claims),
-        Expires = DateTime.UtcNow.AddDays(7),
-        SigningCredentials = creds
-    };
+            // Use environment variable to store the JWT secret key
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ?? "FallbackSecretKey"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var token = tokenHandler.CreateToken(tokenDescriptor);
-    var jwt = tokenHandler.WriteToken(token);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = creds
+            };
 
-    // Set the JWT in a cookie
-    var cookieOptions = new CookieOptions
-    {
-        HttpOnly = true,
-        Secure = true, // Ensure this is true in production
-        SameSite = SameSiteMode.Strict,
-        Expires = DateTime.UtcNow.AddDays(7)
-    };
-    Response.Cookies.Append("AuthToken", jwt, cookieOptions);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var jwt = tokenHandler.WriteToken(token);
 
-    return Ok(new 
-    {
-        id = user.Id,
-        username = user.UserName,
-        token = jwt,
-        roles = roles
-    });
-}
+            // Set the JWT in a cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true, // Ensure this is true in production
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            Response.Cookies.Append("AuthToken", jwt, cookieOptions);
+
+            return Ok(new 
+            {
+                id = user.Id,
+                username = user.UserName,
+                token = jwt,
+                roles = roles
+            });
+        }
 
         [HttpGet("me")]
         [Authorize]
@@ -83,7 +85,7 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
             var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return BadRequest();
+                return Unauthorized("User not found.");
             }
             return new UserDto
             {
@@ -97,8 +99,10 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
         [Authorize]
         public async Task<ActionResult> Logout()
         {
+            // Clear the auth token cookie
+            Response.Cookies.Delete("AuthToken");
             await signInManager.SignOutAsync();
-            return Ok();
+            return Ok("Successfully logged out.");
         }
     }
 }
