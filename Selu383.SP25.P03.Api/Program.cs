@@ -74,10 +74,10 @@ namespace Selu383.SP25.P03.Api
 
 
 
-            builder.WebHost.ConfigureKestrel(serverOptions =>
-            {
-                serverOptions.ListenAnyIP(5249); // Allow external devices (like your phone) to reach backend
-            });
+            //builder.WebHost.ConfigureKestrel(serverOptions =>
+            //{
+            //    serverOptions.ListenAnyIP(5249); // Allow external devices (like your phone) to reach backend
+            //});
 
             var app = builder.Build();
 
