@@ -65,13 +65,13 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
     var token = tokenHandler.CreateToken(tokenDescriptor);
     var jwt = tokenHandler.WriteToken(token);
 
-    // 🚨 THIS IS THE IMPORTANT PART
-    return Ok(new
-    {
-        id = user.Id,
-        username = user.UserName,
-        token = jwt
-    });
+    return Ok(new { 
+    id = user.Id, 
+    username = user.UserName, 
+    token = jwt,
+    roles = roles
+});
+
 }
 
 
