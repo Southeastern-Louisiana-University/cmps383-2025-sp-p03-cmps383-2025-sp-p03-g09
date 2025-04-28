@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Users;
-using Selu383.SP25.P03.Api.Data; 
 
 namespace Selu383.SP25.P03.Api
 {
@@ -17,7 +16,6 @@ namespace Selu383.SP25.P03.Api
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext") ?? throw new InvalidOperationException("Connection string 'DataContext' not found.")));
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
             builder.Services.AddRazorPages();
 
@@ -27,7 +25,7 @@ namespace Selu383.SP25.P03.Api
 
             builder.Services.Configure<IdentityOptions>(options =>
             {
-                // Password settings.
+                // Password settings
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
                 options.Password.RequireNonAlphanumeric = true;
@@ -35,14 +33,13 @@ namespace Selu383.SP25.P03.Api
                 options.Password.RequiredLength = 6;
                 options.Password.RequiredUniqueChars = 1;
 
-                // Lockout settings.
+                // Lockout settings
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
 
-                // User settings.
-                options.User.AllowedUserNameCharacters =
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                // User settings
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
                 options.User.RequireUniqueEmail = false;
             });
 
@@ -56,18 +53,37 @@ namespace Selu383.SP25.P03.Api
                     context.Response.StatusCode = 401;
                     return Task.CompletedTask;
                 };
-
                 options.Events.OnRedirectToAccessDenied = context =>
                 {
                     context.Response.StatusCode = 403;
                     return Task.CompletedTask;
                 };
-
                 options.SlidingExpiration = true;
+            });
+
+            builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(
+            "http://192.168.1.13:8081", 
+            "http://localhost:5173"     
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
+
+
+            builder.WebHost.ConfigureKestrel(serverOptions =>
+            {
+                serverOptions.ListenAnyIP(5249); // Allow external devices (like your phone) to reach backend
             });
 
             var app = builder.Build();
 
+            // Database migrations and seeding
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<DataContext>();
@@ -83,27 +99,29 @@ namespace Selu383.SP25.P03.Api
                 TheaterSeatGeneration.AddSeatsToExistingTheaters(db);
             }
 
-            // Configure the HTTP request pipeline.
+            // Configure the HTTP request pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
             }
 
             app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseRouting()
-               .UseAuthorization()
-               .UseEndpoints(x =>
-               {
-                   x.MapControllers();
-               });
             app.UseStaticFiles();
+            app.UseRouting();
+            app.UseCors(); // 👈 MUST happen after UseRouting
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             if (app.Environment.IsDevelopment())
             {
-                app.UseSpa(x =>
+                app.UseSpa(spa =>
                 {
-                    x.UseProxyToSpaDevelopmentServer("http://localhost:5173");
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
                 });
             }
             else
