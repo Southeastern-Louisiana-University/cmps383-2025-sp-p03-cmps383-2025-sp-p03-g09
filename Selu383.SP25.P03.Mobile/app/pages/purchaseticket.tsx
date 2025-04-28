@@ -52,17 +52,23 @@ export default function PurchaseTicketPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const movieRes = await fetch(`/api/movies/${movieId}`);
+        const movieRes = await fetch(`/api/movies/${movieId}`, {
+          credentials: 'include',
+        });
         const movieData: Movie = await movieRes.json();
         setMovieTitle(movieData.title);
 
-        const foodRes = await fetch('/api/fooditems');
+        const foodRes = await fetch(`/api/fooditems`, {
+          credentials: 'include',
+        });
         const foodData: FoodItem[] = await foodRes.json();
         const filtered = foodData.filter(item => item.locationId === Number(locationId));
         const shuffled = filtered.sort(() => 0.5 - Math.random());
         setFoodItems(shuffled.slice(0, 3));
 
-        const seatRes = await fetch(`/api/seats/theater/${theaterId}`);
+        const seatRes = await fetch(`$/api/seats/theater/${theaterId}`, {
+          credentials: 'include',
+        });
         const seatData: Seat[] = await seatRes.json();
         const matchingSeats = seatData.filter(seat => selectedSeatIds.includes(seat.id));
         const labels = matchingSeats.map(seat => `${rowToLetter(seat.row)}${seat.column}`);

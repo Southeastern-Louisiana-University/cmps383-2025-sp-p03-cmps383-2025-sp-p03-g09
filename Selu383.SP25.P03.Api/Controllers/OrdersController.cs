@@ -263,10 +263,7 @@ public async Task<IActionResult> CreateOrder()
         return BadRequest("Invalid order format.");
     }
 
-    if (dto.UserId == null && !Request.Headers.ContainsKey("X-Guest-ID"))
-    {
-        return Unauthorized("Missing user or guest identity.");
-    }
+    
 
     var theater = await context.Theaters.FirstOrDefaultAsync(t => t.Id == dto.TheaterId);
     if (theater == null)

@@ -18,6 +18,7 @@ const HORIZONTAL_PADDING = 32;
 const GAP_BETWEEN_SEATS = 6;
 const SEAT_SIZE = (SCREEN_WIDTH - HORIZONTAL_PADDING - (GAP_BETWEEN_SEATS * (TOTAL_COLUMNS - 1))) / TOTAL_COLUMNS;
 
+
 interface Seat {
   id: number;
   row: string;
@@ -48,13 +49,17 @@ export default function SeatSelectionScreen() {
     const loadData = async () => {
       try {
         if (movieId) {
-          const movieRes = await fetch(`/api/movies/${movieId}`);
+          const movieRes = await fetch(`/api/movies/${movieId}`, {
+            credentials: 'include',
+          });
           const movieData: Movie = await movieRes.json();
           setMovieTitle(movieData.title);
         }
 
         if (theaterId) {
-          const seatRes = await fetch(`/api/seats/theater/${theaterId}`);
+          const seatRes = await fetch(`/api/seats/theater/${theaterId}`, {
+            credentials: 'include',
+          });
           const seatData: Seat[] = await seatRes.json();
           setSeats(seatData);
 
@@ -76,7 +81,9 @@ export default function SeatSelectionScreen() {
       const reloadSeats = async () => {
         try {
           if (theaterId) {
-            const seatRes = await fetch(`/api/seats/theater/${theaterId}`);
+            const seatRes = await fetch(`/api/seats/theater/${theaterId}`, {
+              credentials: 'include',
+            });
             const seatData: Seat[] = await seatRes.json();
             setSeats(seatData);
 

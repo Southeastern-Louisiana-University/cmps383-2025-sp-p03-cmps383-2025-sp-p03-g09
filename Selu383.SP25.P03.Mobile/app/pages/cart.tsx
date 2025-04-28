@@ -123,54 +123,44 @@ export default function CartPage() {
       alert('Please select at least one seat.');
       return;
     }
-
+  
     try {
       const foodArray = foodList.flatMap(f => Array(f.quantity).fill(f.foodId));
-
-      let payload: any = {
+  
+      const payload: any = {
         movieId: Number(movieId),
         locationId: Number(locationId),
         theaterId: Number(theaterId),
         showtime,
         seatIds: seatLabels.map(seat => seat.id),
       };
-
+  
       if (foodArray.length > 0) {
         payload.foodItemIds = foodArray;
       }
-
+  
       const headers: any = {
         'Content-Type': 'application/json',
       };
-
-      const token = await AsyncStorage.getItem('token');
+  
       const guestId = await AsyncStorage.getItem('guestId');
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        const decoded = jwtDecode<DecodedToken>(token);
-        if (decoded && decoded.nameid) {
-          payload.userId = parseInt(decoded.nameid);
-        }
-      } else if (guestId) {
-        headers['Guest-Id'] = guestId;
+      if (guestId) {
+        headers['X-Guest-ID'] = guestId;
       }
-
-      console.log('FINAL PAYLOAD:', payload);
-      console.log('HEADERS:', headers);
-
-      const res = await fetch('/api/orders', {
+  
+      const res = await fetch(`/api/orders`, {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
-
+  
       if (!res.ok) {
         const text = await res.text();
         console.error('Server Error Response:', text);
         throw new Error('Purchase failed.');
       }
-
+  
       router.push({
         pathname: '/pages/purchaseconfirmation',
         params: {

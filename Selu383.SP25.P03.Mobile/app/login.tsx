@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 
@@ -14,30 +13,27 @@ export default function LoginPage() {
       Alert.alert('Error', 'Please enter both username and password.');
       return;
     }
-  
+
     try {
       setLoading(true);
-  
-      const res = await fetch('/api/authentication/login', {
+
+      const res = await fetch(`/api/authentication/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', 
         body: JSON.stringify({ userName: username, password }),
       });
-  
+
+      console.log('Login fetch response status:', res.status);
+
       if (!res.ok) {
         const text = await res.text();
+        console.error('Server responded with error:', text);
         throw new Error(text || 'Login failed.');
       }
-  
-      const data = await res.json();
-      console.log('Login response:', data);
-  
-      if (!data.token) {
-        throw new Error('Login failed: No token returned.');
-      }
-  
-      await AsyncStorage.setItem('token', data.token);
-  
+
       router.replace('/user');
     } catch (error) {
       console.error('Login error:', error);
@@ -50,7 +46,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-  
 
   return (
     <View style={styles.container}>

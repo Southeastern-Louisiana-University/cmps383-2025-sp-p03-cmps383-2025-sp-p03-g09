@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
 
-const BASE_URL = 'http://192.168.1.13:5249';
 const TICKET_PRICE = 12.99;
 
 interface FoodItem {
@@ -54,17 +53,21 @@ export default function PurchaseConfirmationPage() {
         setFoodList(parsedFood);
 
         // Fetch movie title
-        const movieRes = await fetch(`${BASE_URL}/api/movies/${movieId}`);
-        const movieData: Movie = await movieRes.json();
+        const movieRes = await fetch(`$/api/movies/${movieId}`, {
+          credentials: 'include',
+        });        const movieData: Movie = await movieRes.json();
         setMovieTitle(movieData.title);
 
         // Fetch all food items
-        const foodRes = await fetch(`${BASE_URL}/api/fooditems`);
-        const foodData: FoodItem[] = await foodRes.json();
+        const foodRes = await fetch(`/api/fooditems`, {
+          credentials: 'include',
+        });        const foodData: FoodItem[] = await foodRes.json();
         setFullFoodItems(foodData);
 
         // Fetch seat info
-        const seatRes = await fetch(`${BASE_URL}/api/seats/theater/${theaterId}`);
+        const seatRes = await fetch(`/api/seats/theater/${theaterId}`, {
+          credentials: 'include',
+        });        
         const seatData: Seat[] = await seatRes.json();
         const matchingSeats = seatData.filter(seat => selectedSeatIds.includes(seat.id));
         const labels = matchingSeats.map(seat => `${rowToLetter(seat.row)}${seat.column}`);

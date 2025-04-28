@@ -1,15 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { jwtDecode } from 'jwt-decode';
 import { router } from 'expo-router';
-
-interface DecodedToken {
-  nameid: string;
-  unique_name: string;
-  role: string[];
-  exp: number;
-}
 
 export default function UserPage() {
   const [userName, setUserName] = useState<string | null>(null);
@@ -18,15 +9,20 @@ export default function UserPage() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
-        if (token) {
-          const decoded: DecodedToken = jwtDecode(token);
-          setUserName(decoded.unique_name);
-        } else {
+        const res = await fetch('/api/authentication/me', {
+          credentials: 'include', 
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUserName(data.userName);
+        } else if (res.status === 401) {
           setUserName(null);
+        } else {
+          throw new Error('Failed to load user');
         }
       } catch (error) {
-        console.error('Error decoding token:', error);
+        console.error('Error fetching user:', error);
         setUserName(null);
       } finally {
         setLoading(false);
@@ -41,13 +37,13 @@ export default function UserPage() {
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('token');
+    await fetch('/api/authentication/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
     setUserName(null);
     router.replace('/user');
   };
-  
-
-  
 
   if (loading) {
     return (
@@ -65,8 +61,6 @@ export default function UserPage() {
         <Text style={styles.label}>Logged in as:</Text>
         <Text style={styles.value}>{userName ? userName : 'Guest User'}</Text>
       </View>
-
-    
 
       {userName ? (
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -87,8 +81,6 @@ const styles = StyleSheet.create({
   infoBox: { width: '100%', backgroundColor: '#1f2937', padding: 20, borderRadius: 10, marginBottom: 40 },
   label: { fontSize: 16, color: '#aaa', marginBottom: 8 },
   value: { fontSize: 18, color: '#fff', fontWeight: 'bold' },
-  historyButton: { backgroundColor: '#10b981', paddingVertical: 14, paddingHorizontal: 24, borderRadius: 8, marginTop: 10, width: '100%', alignItems: 'center' },
-  historyButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   logoutButton: { backgroundColor: '#ef4444', paddingVertical: 14, paddingHorizontal: 24, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
   logoutButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   loginButton: { backgroundColor: '#3b82f6', paddingVertical: 14, paddingHorizontal: 24, borderRadius: 8, marginTop: 20, width: '100%', alignItems: 'center' },
