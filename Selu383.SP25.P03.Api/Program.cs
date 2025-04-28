@@ -26,7 +26,6 @@ namespace Selu383.SP25.P03.Api
                 .AddEntityFrameworkStores<DataContext>()
                 .AddDefaultTokenProviders();
 
-            // CORRECT AUTH SETUP: JWT + COOKIES BOTH REGISTERED
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -43,7 +42,7 @@ namespace Selu383.SP25.P03.Api
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "YourSuperSecretKeyHere123456")),
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "wQp7Nw!vK9z_4s#xLtV3@eFpCm2d9qGr")),
                     ClockSkew = TimeSpan.Zero
                 };
             });
