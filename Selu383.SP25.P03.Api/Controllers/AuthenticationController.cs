@@ -8,7 +8,6 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
-
 namespace Selu383.SP25.P03.Api.Controllers
 {
     [Route("api/authentication")]
@@ -28,57 +27,47 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpPost("login")]
-public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
-{
-    var result = await signInManager.PasswordSignInAsync(dto.UserName, dto.Password, false, false);
-    if (!result.Succeeded)
-    {
-        return BadRequest("Invalid username or password.");
-    }
+        public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
+        {
+            var user = await userManager.FindByNameAsync(dto.UserName);
+            if (user == null || !await userManager.CheckPasswordAsync(user, dto.Password))
+            {
+                return BadRequest("Invalid username or password.");
+            }
 
-    var user = await userManager.FindByNameAsync(dto.UserName);
-    if (user == null)
-    {
-        return BadRequest();
-    }
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName)
+            };
 
-    var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.UserName)
-    };
+            var roles = await userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-    var roles = await userManager.GetRolesAsync(user);
-    claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("YOUR_SUPER_SECRET_32CHAR_KEY1234567890"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-    var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("YOUR_SUPER_SECRET_32CHAR_KEY1234567890"));
-    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = creds
+            };
 
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-        Subject = new ClaimsIdentity(claims),
-        Expires = DateTime.UtcNow.AddDays(7),
-        SigningCredentials = creds
-    };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var jwt = tokenHandler.WriteToken(token);
 
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var token = tokenHandler.CreateToken(tokenDescriptor);
-    var jwt = tokenHandler.WriteToken(token);
+            return Ok(new 
+            {
+                id = user.Id,
+                username = user.UserName,
+                token = jwt,
+                roles = roles
+            });
+        }
 
-    return Ok(new { 
-    id = user.Id, 
-    username = user.UserName, 
-    token = jwt,
-    roles = roles
-});
-
-}
-
-
-
-
-        [HttpGet]
-        [Route("me")]
+        [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult<UserDto>> Me()
         {
@@ -95,8 +84,7 @@ public async Task<ActionResult<object>> Login([FromBody] LoginDto dto)
             };
         }
 
-        [HttpPost]
-        [Route("logout")]
+        [HttpPost("logout")]
         [Authorize]
         public async Task<ActionResult> Logout()
         {
