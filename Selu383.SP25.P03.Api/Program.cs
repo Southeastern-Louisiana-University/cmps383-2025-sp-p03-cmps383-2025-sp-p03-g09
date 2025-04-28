@@ -42,7 +42,7 @@ namespace Selu383.SP25.P03.Api
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "wQp7Nw!vK9z_4s#xLtV3@eFpCm2d9qGr")),
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "d9f8e23ab1c643f2bc4b8c9fd452a6df2f5e7a11bbd44c73a8e5fa9ed120c5cf")),
                     ClockSkew = TimeSpan.Zero
                 };
             });

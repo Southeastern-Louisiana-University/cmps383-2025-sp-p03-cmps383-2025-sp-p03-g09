@@ -45,7 +45,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             // Use environment variable to store the JWT secret key
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ?? "FallbackSecretKey"));
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ?? "d9f8e23ab1c643f2bc4b8c9fd452a6df2f5e7a11bbd44c73a8e5fa9ed120c5cf"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var tokenDescriptor = new SecurityTokenDescriptor
