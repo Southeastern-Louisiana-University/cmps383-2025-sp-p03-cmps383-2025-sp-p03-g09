@@ -44,7 +44,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             var roles = await userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-            // Use environment variable to store the JWT secret key
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ?? "d9f8e23ab1c643f2bc4b8c9fd452a6df2f5e7a11bbd44c73a8e5fa9ed120c5cf"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -59,15 +58,16 @@ namespace Selu383.SP25.P03.Api.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var jwt = tokenHandler.WriteToken(token);
 
-            // Set the JWT in a cookie
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true, // Ensure this is true in production
+                Secure = true, 
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddDays(7)
             };
             Response.Cookies.Append("AuthToken", jwt, cookieOptions);
+            Response.Headers.Authorization = $"Bearer {jwt}";
+
 
             return Ok(new 
             {
@@ -99,7 +99,6 @@ namespace Selu383.SP25.P03.Api.Controllers
         [Authorize]
         public async Task<ActionResult> Logout()
         {
-            // Clear the auth token cookie
             Response.Cookies.Delete("AuthToken");
             await signInManager.SignOutAsync();
             return Ok("Successfully logged out.");
