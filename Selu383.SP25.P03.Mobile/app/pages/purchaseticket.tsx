@@ -10,6 +10,7 @@ import {
   Image,
 } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
+import { baseUrl } from '@/constants/constants';
 
 const TICKET_PRICE = 12.99;
 
@@ -52,13 +53,13 @@ export default function PurchaseTicketPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const movieRes = await fetch(`/api/movies/${movieId}`, {
+        const movieRes = await fetch(`${baseUrl}/api/movies/${movieId}`, {
           credentials: 'include',
         });
         const movieData: Movie = await movieRes.json();
         setMovieTitle(movieData.title);
 
-        const foodRes = await fetch(`/api/fooditems`, {
+        const foodRes = await fetch(`${baseUrl}/api/fooditems`, {
           credentials: 'include',
         });
         const foodData: FoodItem[] = await foodRes.json();
@@ -66,7 +67,7 @@ export default function PurchaseTicketPage() {
         const shuffled = filtered.sort(() => 0.5 - Math.random());
         setFoodItems(shuffled.slice(0, 3));
 
-        const seatRes = await fetch(`$/api/seats/theater/${theaterId}`, {
+        const seatRes = await fetch(`${baseUrl}/api/seats/theater/${theaterId}`, {
           credentials: 'include',
         });
         const seatData: Seat[] = await seatRes.json();

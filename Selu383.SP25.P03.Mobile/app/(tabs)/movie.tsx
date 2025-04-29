@@ -16,6 +16,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showtimeSchedule } from '@/Data/showtimeSchedule';
+import { baseUrl } from '@/constants/constants';
 
 
 interface Movie {
@@ -49,7 +50,7 @@ export default function MoviesScreen() {
           setSelectedLocationId(parsed.id);
         }
 
-        const res = await fetch('/api/movies');
+        const res = await fetch(`${baseUrl}/api/movies`);
         if (!res.ok) throw new Error('Failed to fetch movies');
         const data = await res.json();
 

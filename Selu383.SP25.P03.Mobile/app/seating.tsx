@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { baseUrl } from '@/constants/constants';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const TOTAL_COLUMNS = 13;
@@ -49,7 +50,7 @@ export default function SeatSelectionScreen() {
     const loadData = async () => {
       try {
         if (movieId) {
-          const movieRes = await fetch(`/api/movies/${movieId}`, {
+          const movieRes = await fetch(`${baseUrl}/api/movies/${movieId}`, {
             credentials: 'include',
           });
           const movieData: Movie = await movieRes.json();
@@ -57,7 +58,7 @@ export default function SeatSelectionScreen() {
         }
 
         if (theaterId) {
-          const seatRes = await fetch(`/api/seats/theater/${theaterId}`, {
+          const seatRes = await fetch(`${baseUrl}/api/seats/theater/${theaterId}`, {
             credentials: 'include',
           });
           const seatData: Seat[] = await seatRes.json();
@@ -81,7 +82,7 @@ export default function SeatSelectionScreen() {
       const reloadSeats = async () => {
         try {
           if (theaterId) {
-            const seatRes = await fetch(`/api/seats/theater/${theaterId}`, {
+            const seatRes = await fetch(`${baseUrl}/api/seats/theater/${theaterId}`, {
               credentials: 'include',
             });
             const seatData: Seat[] = await seatRes.json();

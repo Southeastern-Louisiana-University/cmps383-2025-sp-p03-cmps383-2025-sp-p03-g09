@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
+import { baseUrl } from '@/constants/constants';
 
 
 export default function LoginPage() {
@@ -17,7 +18,7 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      const res = await fetch(`/api/authentication/login`, {
+      const res = await fetch(`${baseUrl}/api/authentication/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
+import { baseUrl } from '@/constants/constants';
 
 export default function UserPage() {
   const [userName, setUserName] = useState<string | null>(null);
@@ -9,7 +10,7 @@ export default function UserPage() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const res = await fetch('/api/authentication/me', {
+        const res = await fetch(`${baseUrl}/api/authentication/me`, {
           credentials: 'include', 
         });
 
@@ -37,7 +38,7 @@ export default function UserPage() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/authentication/logout', {
+    await fetch(`${baseUrl}/api/authentication/logout`, {
       method: 'POST',
       credentials: 'include',
     });

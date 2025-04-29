@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
+import { baseUrl } from '@/constants/constants';
 
 const TICKET_PRICE = 12.99;
 
@@ -53,19 +54,19 @@ export default function PurchaseConfirmationPage() {
         setFoodList(parsedFood);
 
         // Fetch movie title
-        const movieRes = await fetch(`$/api/movies/${movieId}`, {
+        const movieRes = await fetch(`${baseUrl}/api/movies/${movieId}`, {
           credentials: 'include',
         });        const movieData: Movie = await movieRes.json();
         setMovieTitle(movieData.title);
 
         // Fetch all food items
-        const foodRes = await fetch(`/api/fooditems`, {
+        const foodRes = await fetch(`${baseUrl}/api/fooditems`, {
           credentials: 'include',
         });        const foodData: FoodItem[] = await foodRes.json();
         setFullFoodItems(foodData);
 
         // Fetch seat info
-        const seatRes = await fetch(`/api/seats/theater/${theaterId}`, {
+        const seatRes = await fetch(`${baseUrl}/api/seats/theater/${theaterId}`, {
           credentials: 'include',
         });        
         const seatData: Seat[] = await seatRes.json();

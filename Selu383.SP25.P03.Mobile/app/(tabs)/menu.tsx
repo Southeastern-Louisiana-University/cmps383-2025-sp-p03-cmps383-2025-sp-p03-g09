@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { baseUrl } from '@/constants/constants';
 
 
 // Types
@@ -39,7 +40,7 @@ export default function FoodMenuScreen() {
 
   const fetchFoodItems = async () => {
     try {
-      const res = await fetch('/api/fooditems');
+      const res = await fetch(`${baseUrl}/api/fooditems`);
       if (!res.ok) throw new Error('Failed to fetch food items.');
       const data = await res.json();
       setMenuItems(data);

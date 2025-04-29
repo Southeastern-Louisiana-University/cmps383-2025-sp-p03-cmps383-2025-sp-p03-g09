@@ -1,0 +1,1 @@
+export const baseUrl = 'https://selu383-sp25-p03-g09.azurewebsites.net';

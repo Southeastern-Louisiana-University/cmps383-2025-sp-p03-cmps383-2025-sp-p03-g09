@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
+import { baseUrl } from '@/constants/constants';
 
 
 interface Order {
@@ -29,10 +30,10 @@ export default function PurchaseHistoryPage() {
         };
 
         if (token) {
-          url = '/api/orders/user';
+          url = `${baseUrl}/api/orders/user`;
           headers['Authorization'] = `Bearer ${token}`;
         } else if (guestId) {
-          url = `/api/orders/guest/${guestId}`;
+          url = `${baseUrl}/api/orders/guest/${guestId}`;
         } else {
           throw new Error('No user or guest ID found.');
         }
